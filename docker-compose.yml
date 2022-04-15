@@ -1,0 +1,28 @@
+version: '3.3'
+services:
+  mongodb:
+    image: mongo:4.2
+    container_name: multiforge_mongodb
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - multiforge
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./docker/fastapi/Dockerfile
+    container_name: multiforge_fastapi
+    volumes:
+      - ./backend:/multiforge/backend
+
+
+volumes:
+  mongo-data:
+    driver: local
+  backend:
+    driver: local
+
+networks:
+  multiforge:
+    driver: bridge
