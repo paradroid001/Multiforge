@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 from app.dependencies import get_settings
+from app.api import tools
 
 settings = get_settings()
 
@@ -19,8 +20,4 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
-router = APIRouter()
-
-@router.get("/")
-def hello():
-    return "Hello"
+app.include_router(tools.router)
