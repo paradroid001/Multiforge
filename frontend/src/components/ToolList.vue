@@ -2,7 +2,7 @@
     <div class="tool-list">
         <p>Ordered By {{ order }}</p>
         <transition-group name="toollist" tag="ul"> <!--<ul>-->
-            <li v-for="tool in orderedTools" :key="tool.id">
+            <li v-for="tool in orderedTools" :key="tool.name">
             <h2>
                 <i class="mdi mdi-tools"></i>
                 {{tool.name}}
@@ -42,11 +42,19 @@ export default defineComponent({
         }
     },
     setup(props) {
+
+        /*
         const orderedTools = computed( () => {
             //new temp array, so we aren't mutating tools prop
             return [...props.tools].sort( (a: ForgeTool, b: ForgeTool) => {
                 return a[props.order] > b[props.order] ? 1 : -1;
             }); 
+        });
+        */
+        const orderedTools = computed( () => {
+            console.log("Num tools = " + props.tools.length);
+            console.log(props.tools);
+           return props.tools;
         });
 
         return { orderedTools }

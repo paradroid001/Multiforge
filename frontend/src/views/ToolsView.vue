@@ -39,7 +39,7 @@ export default defineComponent({
         const order = ref<OrderTerm>('id');
         const handleClick = (term: OrderTerm) => {
             order.value = term;
-        }
+        };
         return {tools, order, handleClick};
     }
 });

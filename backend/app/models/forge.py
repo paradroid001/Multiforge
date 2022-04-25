@@ -21,3 +21,9 @@ class Forge(BaseModel):
     def save(self):
         return self.dict(by_alias=True)
     
+class ForgePublic(Forge):
+    id: Optional[str]
+    def __init__(self, **pydict):
+        super(ForgePublic, self).__init__(**pydict)
+        self.id = str(pydict.get("_id"))
+    

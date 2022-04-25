@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from app.dependencies import get_settings
 from app.settings import Settings
-from app.models.forge import Forge
+from app.models.forge import Forge, ForgePublic
 
 router = APIRouter()
 
@@ -10,7 +10,7 @@ router = APIRouter()
 async def get_forges(settings=Depends(get_settings)):
     forges_collection = await settings.get_collection('forges')
     forges_filter = {}
-    forges = [Forge(**item) for item in forges_collection.find(forges_filter)]
+    forges = [ForgePublic(**item) for item in forges_collection.find(forges_filter)]
     return forges
 
 @router.get("/forges/new/")
