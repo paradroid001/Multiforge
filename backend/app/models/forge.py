@@ -6,10 +6,17 @@ from pydantic import BaseModel, Field
 
 from app.util_classes import PyObjectId
 
+
 class Forge(BaseModel):
     id: PyObjectId = Field(alias='_id', default_factory=PyObjectId)
     name: str
     url: str
+
+    @classmethod
+    def fields(cls):
+        ret = Forge.schema().get('properties')
+        ret.pop('_id')
+        return ret
 
     class Config:
         allow_population_by_field_name = True
@@ -20,10 +27,11 @@ class Forge(BaseModel):
 
     def save(self):
         return self.dict(by_alias=True)
-    
+
+
 class ForgePublic(Forge):
     id: Optional[str]
+
     def __init__(self, **pydict):
         super(ForgePublic, self).__init__(**pydict)
         self.id = str(pydict.get("_id"))
-    

@@ -1,7 +1,8 @@
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 from app.dependencies import get_settings
-from app.api import tools
+from app.api.routers import tools, forges, db
+
 
 settings = get_settings()
 
@@ -20,4 +21,7 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+
+app.include_router(forges.router)
 app.include_router(tools.router)
+app.include_router(db.router)
