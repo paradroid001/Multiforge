@@ -1,0 +1,3 @@
+[submodule "frontend/lib/litegraph.js"]
+	path = frontend/lib/litegraph.js
+	url = https://github.com/paradroid001/litegraph.js.git
