@@ -1,11 +1,19 @@
 <template>
-  <div>
-    <canvas ref="canvas" class="graph-canvas"></canvas>
-    <canvas ref="output" class="output-canvas"></canvas>
+  <div class="litegraph litegraph-editor">
+    <button @click="start()">
+        <i class="mdi mdi-flask" aria-hidden="true"></i>
+        START
+    </button>
+    <button @click="stop()">
+        <i class="mdi mdi-flask" aria-hidden="true"></i>
+        STOP
+    </button>
+    <canvas ref="canvas" class="graph-canvas" width='500' height='500' tabindex=10></canvas>
+    <canvas ref="output" class="output-canvas" width='500' height='500' tabindex=10></canvas>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import createNode from "@/utils/liteGraphUtils";
 import * as litegraph from "litegraph.js";
 import uuid4 from "uuid";
@@ -13,7 +21,7 @@ import "litegraph.js/css/litegraph.css";
 
 export default {
   name: "LiteGraph",
-
+    
   data() {
     return {
       outputContext: null,
@@ -31,6 +39,7 @@ export default {
     this.context = canvas.getContext("2d");
     this.resize();
 
+    //Output Canvas
     const output = document.createElement("canvas");
     const outputContext = (this.outputContext = output.getContext("2d"));
 
@@ -39,7 +48,8 @@ export default {
 
     this.graph = new litegraph.LGraph();
     this.lGraphCanvas = new litegraph.LGraphCanvas(canvas, this.graph);
-    this.graph.start();
+    //this.lGraphCanvas.resize();
+    //this.graph.start();
 
     createNode("modV/visualInput", {
       title: "Visual Input",
@@ -254,12 +264,24 @@ export default {
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
+    },
+    play() {
+        console.log("PLAY");
+        if (this.graph.status == litegraph.LGraph.STATUS_STOPPED) {
+            this.graph.start();
+        }
+    },
+    stop() {
+        if (this.graph.status != litegraph.LGraph.STATUS_STOPPED) {
+            this.graph.stop();
+        }
     }
   }
 };
 </script>
 
 <style scoped>
+/*
 canvas.graph-canvas {
   position: fixed;
   top: 0;
@@ -272,5 +294,6 @@ canvas.output-canvas {
   bottom: 0;
   pointer-events: none;
 }
+*/
 </style>
 

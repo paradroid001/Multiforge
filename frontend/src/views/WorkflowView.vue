@@ -2,7 +2,7 @@
   <div class="workflow">
     <h1>Workflow</h1>
     <p>Here you do workflows.</p>
-    <div style="width: 50%; height: 50%;" id="litegraph">
+    <div id="litegraph">
       <LiteGraph/>
     </div>
   </div>
