@@ -59,7 +59,7 @@
         console.log("forgview ran an async");
         //const j = new JSONResponse<Forge[]>();
         //let f:JSONResponse<Forge[]> = await j.load("http://127.0.0.1:8000/forges/");
-        let f:JSONResponse<Forge[]> = await loadForges("http://127.0.0.1:8000/forges/");
+        let f:JSONResponse<Forge[]> = await loadForges("http://127.0.0.1:8000/api/forges/");
         forgeArray.value = f.data ? f.data:[];
 
         /* This code works
