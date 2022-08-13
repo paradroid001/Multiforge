@@ -1,6 +1,6 @@
 <template>
   <div class="litegraph litegraph-editor">
-    <button @click="start()">
+    <button @click="play()">
         <i class="mdi mdi-flask" aria-hidden="true"></i>
         START
     </button>
@@ -8,50 +8,53 @@
         <i class="mdi mdi-flask" aria-hidden="true"></i>
         STOP
     </button>
-    <canvas ref="canvas" class="graph-canvas" width='500' height='500' tabindex=10></canvas>
-    <canvas ref="output" class="output-canvas" width='500' height='500' tabindex=10></canvas>
+    <canvas ref="canvas" class="graph-canvas" ></canvas>
+    <canvas ref="output" class="output-canvas" ></canvas>
   </div>
 </template>
 
 <script lang="ts">
-import createNode from "@/utils/liteGraphUtils";
+import { createNode, createNodeEx } from "@/utils/liteGraphUtils";
+import { defineComponent, onMounted, PropType, ref } from "vue";
 import * as litegraph from "litegraph.js";
 import uuid4 from "uuid";
 import "litegraph.js/css/litegraph.css";
 
-export default {
-  name: "LiteGraph",
-    
-  data() {
-    return {
-      outputContext: null,
-      context: null,
-      graph: null,
-      lGraphCanvas: null
-    };
-  },
+export default defineComponent ({
+    name: "LiteGraph",
+    props: {
 
-  mounted() {
-    //const that = this;
-    window.addEventListener("resize", this.resize);
+    },
+    setup(props) {
+        const canvas = ref(null);
+        //let canvas = ref(null);
+        const context= ref(null);
+        const output = ref(null);
+        const outputContext = ref(null);
+        let graph = null;
+        let lGraphCanvas = null;
 
-    const { canvas } = this.$refs;
-    this.context = canvas.getContext("2d");
-    this.resize();
+        onMounted( () => {
+            window.addEventListener("resize", resize);
 
-    //Output Canvas
-    const output = document.createElement("canvas");
-    const outputContext = (this.outputContext = output.getContext("2d"));
+            context.value = canvas.value.getContext("2d");
+            
+            resize();
+            
+            //Output Canvas
+            output.value = document.createElement("canvas");
+            outputContext.value = output.value.getContext("2d");
+            
+            const bufferCanvas = document.createElement("canvas");
+            const bufferContext = bufferCanvas.getContext("2d");
 
-    const bufferCanvas = document.createElement("canvas");
-    const bufferContext = bufferCanvas.getContext("2d");
-
-    this.graph = new litegraph.LGraph();
-    this.lGraphCanvas = new litegraph.LGraphCanvas(canvas, this.graph);
-    //this.lGraphCanvas.resize();
-    //this.graph.start();
-
-    createNode("modV/visualInput", {
+            graph = new litegraph.LGraph();
+            lGraphCanvas = new litegraph.LGraphCanvas(canvas.value, graph);
+            lGraphCanvas.resize();
+            //this.graph.start(); //this will be done by a button
+            
+            
+            createNode("modV/visualInput", {
       title: "Visual Input",
       outputs: {
         context: "renderContext"
@@ -83,8 +86,8 @@ export default {
         if (!renderContext) {
           return;
         }
-        outputContext.clearRect(0, 0, output.width, output.height);
-        outputContext.drawImage(renderContext.canvas, 0, 0);
+        outputContext.value.clearRect(0, 0, output.value.width, output.value.height);
+        outputContext.value.drawImage(renderContext.canvas, 0, 0);
       }
     });
 
@@ -254,46 +257,52 @@ export default {
         this.setOutputData(0, renderContext);
       }
     });
-  },
+            
 
-  methods: {
-    resize() {
-      const { canvas } = this.$refs;
-      const { devicePixelRatio: dpr } = window;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-    },
-    play() {
-        console.log("PLAY");
-        if (this.graph.status == litegraph.LGraph.STATUS_STOPPED) {
-            this.graph.start();
-        }
-    },
-    stop() {
-        if (this.graph.status != litegraph.LGraph.STATUS_STOPPED) {
-            this.graph.stop();
-        }
+        });
+
+        const resize= () => {
+            const { devicePixelRatio: dpr } = window;
+            canvas.value.width = window.innerWidth * dpr;
+            canvas.value.height = window.innerHeight * dpr;
+            canvas.value.style.width = `${window.innerWidth}px`;
+            canvas.value.style.height = `${window.innerHeight}px`;
+        };
+
+        const play = () => {
+            console.log("PLAY");
+            if (graph.status == litegraph.LGraph.STATUS_STOPPED) {
+                graph.start();
+            }
+        };
+
+        const stop = () => {
+            console.log("STOP");
+            if (graph.status != litegraph.LGraph.STATUS_STOPPED) {
+                graph.stop();
+            }
+        };
+
+        return {canvas, context, outputContext, resize, play, stop};
     }
-  }
-};
+});
+  
 </script>
 
 <style scoped>
-/*
+
 canvas.graph-canvas {
-  position: fixed;
+  position: relative;
   top: 0;
   left: 0;
 }
 
 canvas.output-canvas {
-  position: fixed;
+  position: relative;
   right: 0;
   bottom: 0;
   pointer-events: none;
 }
-*/
+
 </style>
 

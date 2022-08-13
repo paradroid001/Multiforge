@@ -34,7 +34,14 @@ const createNode = (type, params) => {
   
     litegraph.LiteGraph.registerNodeType(type, node);
     return node;
-  }
+  };
 
-  export default createNode;
+  const createNodeEx = (type, params) => {
+
+    return createNode(type, params);
+  };
+
+
+
+  export {createNode, createNodeEx};
   
