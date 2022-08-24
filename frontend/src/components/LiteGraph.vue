@@ -14,45 +14,100 @@
 </template>
 
 <script lang="ts">
+import { Forge } from "@/types/Forge";
+import { ForgeTool} from "@/types/ForgeTool";
+import JSONResponse from "@/types/JSONResponse";
 import { createNode, createNodeEx } from "@/utils/liteGraphUtils";
 import { defineComponent, onMounted, PropType, ref } from "vue";
 import * as litegraph from "litegraph.js";
 import uuid4 from "uuid";
 import "litegraph.js/css/litegraph.css";
+import { createExecNode, ExecNode}  from "@/utils/execNode";
 
 export default defineComponent ({
     name: "LiteGraph",
     props: {
-
+      forgesArray: {
+        required: true,
+        type: Array as PropType<Forge[]>
+      }
     },
     setup(props) {
-        const canvas = ref(null);
-        //let canvas = ref(null);
-        const context= ref(null);
-        const output = ref(null);
-        const outputContext = ref(null);
-        let graph = null;
-        let lGraphCanvas = null;
+        const canvas = ref<HTMLCanvasElement>();
+        const context = ref<CanvasRenderingContext2D|null>();
+        const output = ref<HTMLCanvasElement>();
+        const outputContext = ref<CanvasRenderingContext2D|null>();
+        let graph: litegraph.LGraph;// = null;
+        let lGraphCanvas: litegraph.LGraphCanvas;// = null;
+
+
+        (async () => {
+        //console.log(props.forgesArray);
+          console.log("Listing forges");
+          props.forgesArray.forEach( async (forge:Forge) => {
+            //forge.tools.forEach((tool:ForgeTool)=>{
+            //  console.log("Tool = " + tool.id + ", " + tool.name);
+            //});
+            
+            let ret: JSONResponse<ForgeTool[]> = await forge.getDetails();
+            //console.log(ret.data);
+            console.log("I am a forge: " + forge.name);
+            console.log(`I have tools:`);
+            ret?.data?.forEach( (tool: ForgeTool) => {
+              console.log(`${tool.name}: ${tool.url}`);
+            });
+            
+          });
+          console.log("Finished listing forges");
+        })();
 
         onMounted( () => {
             window.addEventListener("resize", resize);
 
-            context.value = canvas.value.getContext("2d");
-            
-            resize();
-            
+            //const bufferCanvas = document.createElement("canvas");
+            //const bufferContext = bufferCanvas.getContext("2d");
             //Output Canvas
             output.value = document.createElement("canvas");
-            outputContext.value = output.value.getContext("2d");
+            if (canvas.value && output.value)
+            {
+                outputContext.value = output.value.getContext("2d");
+                context.value = canvas.value.getContext("2d");
+                graph = new litegraph.LGraph();
+                lGraphCanvas = new litegraph.LGraphCanvas(canvas.value, graph);
+                lGraphCanvas.resize();
+                resize();
+                
+              //this.graph.start(); //this will be done by a button
             
-            const bufferCanvas = document.createElement("canvas");
-            const bufferContext = bufferCanvas.getContext("2d");
+                
+                
+                createNodeEx("brad", {
+                  inputs: { one: "string", two: "number", three: "boolean"},
+                  outputs: {four: "string", five: "number", six: "boolean"},
+                  title: "Bradclass1",
+                  //size: [400, 500],
+                  desc: "This is an example"
 
-            graph = new litegraph.LGraph();
-            lGraphCanvas = new litegraph.LGraphCanvas(canvas.value, graph);
-            lGraphCanvas.resize();
-            //this.graph.start(); //this will be done by a button
-            
+                });
+                createNodeEx("brad", {
+                  inputs: { one: "string", two: "number", three: "boolean"},
+                  outputs: {four: "string", five: "number", six: "boolean"},
+                  title: "Bradclass2",
+                  //size: [400, 500],
+
+                });
+                createNodeEx("brad", {
+                  inputs: { one: "string", two: "number", three: "boolean"},
+                  outputs: {four: "string", five: "number", six: "boolean"},
+                  title: "Bradclass3",
+                  //size: [400, 500],
+
+                });
+                //const e: ExecNode = new ExecNode();
+                //litegraph.LiteGraph.registerNodeType("Something", e);
+            }
+
+            /*
             
             createNode("modV/visualInput", {
       title: "Visual Input",
@@ -257,16 +312,20 @@ export default defineComponent ({
         this.setOutputData(0, renderContext);
       }
     });
+    */
             
 
         });
 
         const resize= () => {
             const { devicePixelRatio: dpr } = window;
-            canvas.value.width = window.innerWidth * dpr;
-            canvas.value.height = window.innerHeight * dpr;
-            canvas.value.style.width = `${window.innerWidth}px`;
-            canvas.value.style.height = `${window.innerHeight}px`;
+            if (canvas.value)
+            {
+                canvas.value.width = window.innerWidth * dpr;
+                canvas.value.height = window.innerHeight * dpr;
+                canvas.value.style.width = `${window.innerWidth}px`;
+                canvas.value.style.height = `${window.innerHeight}px`;
+            }
         };
 
         const play = () => {

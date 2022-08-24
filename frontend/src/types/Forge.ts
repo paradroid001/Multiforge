@@ -28,6 +28,7 @@ export class Forge {
             //ret.data = [];
             if (response.ok) {
                 ret.data = await response.json();
+                console.log("Forge got its data");
                 /*
                 data.forEach( (item:any) => {
                     ret.data?.push(item);
@@ -35,6 +36,10 @@ export class Forge {
                 })
                 */
                 //this.status = "online";
+                ret?.data?.forEach( (item: any) => {
+                    console.log(item);
+                    this.tools.push(item); //item conforms to forgetool interface?
+                });
             } else {
                 ret.errors = "No forge data";
             }
