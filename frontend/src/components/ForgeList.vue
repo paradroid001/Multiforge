@@ -84,7 +84,7 @@ export default defineComponent({
 
 <style>
 .forge-list {
-  background: #aaaaaa;
+  background: #c9c9c9;
   border-radius: 4px;
   padding: 16px;
   margin: 16px 0;

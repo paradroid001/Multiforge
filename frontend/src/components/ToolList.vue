@@ -107,7 +107,7 @@ export default defineComponent({
 }
 .tool-list li {
   list-style-type: none;
-  background: white;
+  background: rgb(143, 143, 143);
   padding: 16px;
   margin: 16px 0;
   border-radius: 4px;

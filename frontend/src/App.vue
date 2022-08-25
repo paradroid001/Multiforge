@@ -45,13 +45,13 @@ header {
   text-align: center;
 }
 header .order {
-  margin-top: 20px;
+  margin-top: 5px;
 }
 button {
   margin: 0 10px;
-  color: #1195c9;
-  border: 3px solid #1195c9;
-  background: #d5f0ff;
+  color: #000000;
+  border: 3px solid #000000;
+  background: #ffffff;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
@@ -83,8 +83,9 @@ header h1 {
 }
 
 #nav a.router-link-exact-active {
-  color: white;
-  background: crimson;
+  color: black;
+  border: 2px solid crimson;
+  background: white;
 }
 
 /*
