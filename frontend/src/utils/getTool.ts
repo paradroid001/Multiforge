@@ -1,5 +1,5 @@
-import {ForgeTool} from '../types/ForgeTool';
-import JSONResponse from '@/types/JSONResponse';
+import { ForgeTool } from '../types/ForgeTool';
+import { JSONResponse } from '../types/JSONResponse';
 
 const getTools = () => {
     async function loadTools (url: string): Promise<JSONResponse<ForgeTool[]>>

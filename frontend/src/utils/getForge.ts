@@ -1,6 +1,6 @@
 import { ref } from 'vue';
-import {Forge} from '../types/Forge';
-import JSONResponse from '@/types/JSONResponse';
+import { Forge } from '../types/Forge';
+import { JSONResponse } from '../types/JSONResponse';
 
 const getForges = () => {
     //const forges = ref([]);

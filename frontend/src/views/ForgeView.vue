@@ -2,15 +2,33 @@
   <div class="about">
     <h1>Forges</h1>
     <p>See your forges here!</p>
-    <div v-if="error">{{error}}</div>
+    <div v-if="error">{{ error }}</div>
     <div v-if="forgeArray.length">
       <ForgeList :forgesArray="forgeArray" />
     </div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref } from "vue";
+import { Forge } from "../types/Forge";
+import { ForgeTool } from "../types/ForgeTool";
+import { JSONResponse } from "../types/JSONResponse";
+import ForgeList from "../components/ForgeList.vue";
+import getForges from "../utils/getForge";
+
+const { loadForges } = getForges();
+const forgeArray = ref<Forge[]>([]);
+const error = ref<string | null>(null);
+(async () => {
+  let backendURL = "http://127.0.0.1:8000/api/forges/";
+  let f: JSONResponse<Forge[]> = await loadForges(backendURL);
+  forgeArray.value = f.data ? f.data : [];
+})();
+</script>
+
+<!--
 <script lang="ts">
-  import ForgeList from '../components/ForgeList.vue';
   import getForges from "@/utils/getForge";
   import Forge from "@/types/Forge";
   import ForgeTool from "@/types/ForgeTool"
@@ -42,3 +60,4 @@
   });
   
 </script>
+-->

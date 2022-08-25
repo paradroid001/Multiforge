@@ -3,5 +3,3 @@ export interface ForgeTool {
     name: string,
     url: string,
 }
-
-export default ForgeTool

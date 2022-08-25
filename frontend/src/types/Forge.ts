@@ -1,5 +1,5 @@
-import ForgeTool from "./ForgeTool";
-import JSONResponse from "./JSONResponse";
+import { ForgeTool } from "./ForgeTool";
+import { JSONResponse } from "./JSONResponse";
 
 //Separating into data interface/class
 //https://stackoverflow.com/questions/66312939/type-inferance-using-fetch-with-typescript
@@ -52,5 +52,3 @@ export class Forge {
         return ret;
     }
 }
-
-export default Forge;

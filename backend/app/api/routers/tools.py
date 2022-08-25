@@ -12,4 +12,8 @@ router = APIRouter(
 @router.get("/")
 async def get_tools():
     print("get tools was called")
-    return "tools"
+    tool1 = {"id": 1, "name": "My Fake Tool", "url": "http://whatever"}
+    tool2 = {"id": 2, "name": "Crazy fake tools", "url": "http: // whatever"}
+    tool3 = {"id": 3, "name": "Yep. I am fake", "url": "http://whatever"}
+
+    return [tool1, tool2, tool3]

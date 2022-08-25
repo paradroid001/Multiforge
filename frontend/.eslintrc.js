@@ -1,29 +1,18 @@
 module.exports = {
-  root: true,
   env: {
-    node: true
+    node: true,
   },
-  'extends': [
-    'plugin:vue/vue3-essential',
-    'eslint:recommended',
-    '@vue/typescript/recommended'
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:vue/vue3-recommended",
+    "prettier",
   ],
-  parserOptions: {
-    ecmaVersion: 2020
-  },
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint"],
+  root: true,
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    // override/add rules settings here, such as:
+    // 'vue/no-unused-vars': 'error'
   },
-  overrides: [
-    {
-      files: [
-        '**/__tests__/*.{j,t}s?(x)',
-        '**/tests/unit/**/*.spec.{j,t}s?(x)'
-      ],
-      env: {
-        jest: true
-      }
-    }
-  ]
-}
+};

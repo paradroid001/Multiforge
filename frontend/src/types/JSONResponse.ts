@@ -1,4 +1,7 @@
-class JSONResponse<T>
+//Inspired by:
+//https://kentcdodds.com/blog/using-fetch-with-type-script
+
+export class JSONResponse<T>
 {
     data:T|null = null;
     status = 0;
@@ -22,8 +25,3 @@ class JSONResponse<T>
         return Promise.resolve(this);
     }
 }
-
-//Inspired by:
-//https://kentcdodds.com/blog/using-fetch-with-type-script
-
-export default JSONResponse;
