@@ -9,7 +9,7 @@ export class Forge {
     name: string;
     url: string;
     tools: ForgeTool[];
-    status: string;
+    status = "offline";
     
     //This constructor is for making forges out of 'forge data'
     constructor( data : Partial<Forge>){
@@ -40,6 +40,27 @@ export class Forge {
                     console.log(item);
                     this.tools.push(item); //item conforms to forgetool interface?
                 });
+            } else {
+                ret.errors = "No forge data";
+            }
+        }
+        catch (err)
+        {
+            const e: Error = err as Error;
+            ret.errors = e.message;
+        }
+        return ret;
+    }
+
+    async checkStatus(multiforge_url: string): Promise<JSONResponse<{name:string, tools: ForgeTool[]}>> {
+        const ret: JSONResponse<{name:string, tools: ForgeTool[]}> = new JSONResponse<{name:string, tools: ForgeTool[]}>();
+        try {
+            const response = await fetch(multiforge_url + "/forges/check/" + this.id + "/");
+            ret.status=response.status;
+            //ret.data = [];
+            if (response.ok) {
+                ret.data = await response.json();
+                this.status = 'online';
             } else {
                 ret.errors = "No forge data";
             }

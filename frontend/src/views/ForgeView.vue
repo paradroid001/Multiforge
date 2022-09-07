@@ -4,7 +4,7 @@
     <p>See your forges here!</p>
     <div v-if="error">{{ error }}</div>
     <div v-if="forgeArray.length">
-      <ForgeList :forgesArray="forgeArray" />
+      <ForgeList :forgesArray="forgeArray" :url="backendURL" />
     </div>
   </div>
 </template>
@@ -20,9 +20,11 @@ import getForges from "../utils/getForge";
 const { loadForges } = getForges();
 const forgeArray = ref<Forge[]>([]);
 const error = ref<string | null>(null);
+const backendURL = ref<string>("http://127.0.0.1:8000/api");
 (async () => {
-  let backendURL = "http://127.0.0.1:8000/api/forges/";
-  let f: JSONResponse<Forge[]> = await loadForges(backendURL);
+  let f: JSONResponse<Forge[]> = await loadForges(
+    backendURL.value + "/forges/"
+  );
   forgeArray.value = f.data ? f.data : [];
 })();
 </script>

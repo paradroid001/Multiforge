@@ -6,8 +6,10 @@ from pydantic import BaseModel, Field
 
 from app.util_classes import PyObjectId
 
+
 async def get_forge_collection(settings):
     return await settings.get_collection('forges')
+
 
 class Forge(BaseModel):
     id: PyObjectId = Field(alias='_id', default_factory=PyObjectId)
@@ -52,5 +54,6 @@ class ForgePublic(Forge):
     id: Optional[str]
 
     def __init__(self, **pydict):
+        if "_id" in pydict:
+            pydict["id"] = str(pydict.pop("_id"))
         super(ForgePublic, self).__init__(**pydict)
-        self.id = str(pydict.get("_id"))

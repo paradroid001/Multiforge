@@ -16,11 +16,7 @@
         </div>
         <div class="description">
           <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti
-            excepturi nulla nostrum consequuntur hic corrupti illo odit! Eum
-            dolor accusantium neque, quisquam aspernatur, ut tenetur unde odit
-            non deserunt id officiis eligendi dolores magnam quidem magni sequi
-            dolorem.
+            {{ tool.description }}
           </p>
         </div>
       </li>
