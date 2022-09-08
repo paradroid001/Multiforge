@@ -5,8 +5,9 @@
       <!--<ul>-->
       <li v-for="tool in orderedTools" :key="tool.name">
         <h2>
-          <i class="mdi mdi-tools"></i>
-          {{ tool.name }}
+          <i class="mdi mdi-tools">
+            {{ tool.name }}
+          </i>
         </h2>
         <div class="url">
           <a :href="tool.url">
