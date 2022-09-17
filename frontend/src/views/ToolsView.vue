@@ -34,13 +34,15 @@ const handleClick = (term: OrderTerm) => {
   order.value = term;
 };
 
+const backendurl = import.meta.env.VITE_BACKEND_URL;
 const { loadTools } = getTools();
 //const toolArray = ref<ForgeTool[]>([]);
 //const error = ref<string | null>(null);
 (async () => {
   console.log("I am fetching backend tools");
+  console.log(`${backendurl}/tools`);
   let ft: JSONResponse<ForgeTool[]> = await loadTools(
-    "http://127.0.0.1:8000/api/tools/"
+    `${import.meta.env.VITE_BACKEND_URL}/tools/`
   );
   if (ft.data) {
     tools.value = ft.data;

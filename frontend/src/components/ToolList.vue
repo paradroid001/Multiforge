@@ -12,13 +12,17 @@
         <div class="url">
           <a :href="tool.url">
             <i class="mdi mdi-link"></i>
-            {{ tool.url }}
+            args: {{ tool.args }}
           </a>
         </div>
+        <div class="root">
+          <p>Root: {{ tool.root }}</p>
+        </div>
+        <div class="command">
+          <p>Command: {{ tool.command }}</p>
+        </div>
         <div class="description">
-          <p>
-            {{ tool.description }}
-          </p>
+          <p>Description: {{ tool.description }}</p>
         </div>
       </li>
     </transition-group>

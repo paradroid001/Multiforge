@@ -16,7 +16,7 @@
 <script lang="ts">
 import { Forge } from "../types/Forge";
 import { ForgeTool } from "../types/ForgeTool";
-import JSONResponse from "../types/JSONResponse";
+import { JSONResponse } from "../types/JSONResponse";
 import { createNode, createNodeEx } from "../utils/liteGraphUtils";
 import { defineComponent, onMounted, PropType, ref } from "vue";
 import * as litegraph from "litegraph.js";
@@ -53,7 +53,8 @@ export default defineComponent({
         console.log("I am a forge: " + forge.name);
         console.log(`I have tools:`);
         ret?.data?.forEach((tool: ForgeTool) => {
-          console.log(`${tool.name}: ${tool.url}`);
+          //console.log(`${tool.name}: ${tool.url}`);
+          console.log(tool);
         });
       });
       console.log("Finished listing forges");

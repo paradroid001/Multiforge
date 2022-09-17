@@ -20,7 +20,8 @@ import getForges from "../utils/getForge";
 const { loadForges } = getForges();
 const forgeArray = ref<Forge[]>([]);
 const error = ref<string | null>(null);
-const backendURL = ref<string>("http://127.0.0.1:8000/api");
+//const backendURL = ref<string>("http://127.0.0.1:8000/api");
+const backendURL = ref<string>(import.meta.env.VITE_BACKEND_URL);
 (async () => {
   let f: JSONResponse<Forge[]> = await loadForges(
     backendURL.value + "/forges/"

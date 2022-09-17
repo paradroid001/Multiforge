@@ -10,10 +10,21 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_tools():
-    print("get tools was called")
-    tool1 = {"id": 1, "name": "My Fake Tool", "url": "http://whatever"}
-    tool2 = {"id": 2, "name": "Crazy fake tools", "url": "http: // whatever"}
-    tool3 = {"id": 3, "name": "Yep. I am fake", "url": "http://whatever"}
+async def get_tools(settings=Depends(get_settings)):
+    #print("get tools was called")
+    #tool1 = {"id": 1, "name": "My Fake Tool", "url": "http://whatever"}
+    #tool2 = {"id": 2, "name": "Crazy fake tools", "url": "http: // whatever"}
+    #tool3 = {"id": 3, "name": "Yep. I am fake", "url": "http://whatever"}
 
-    return [tool1, tool2, tool3]
+    forges_collection = await Forge.collection(settings)
+    forges_filter = {}
+    forges = [Forge(**item) for item in forges_collection.find(forges_filter)]
+    # TODO: do I have to await this? Can't I run it sync?
+    tools_response = [await forge.refresh_tools() for forge in forges]
+    toolgroups = [toolgroup for toolgroup in tools_response]
+    # print(toolgroups)
+    tools = []
+    for toolgroup in toolgroups:
+        for tool in toolgroup:
+            tools.append(tool)
+    return tools

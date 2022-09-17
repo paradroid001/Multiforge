@@ -11,33 +11,26 @@
   <router-view />
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { defineComponent } from "vue";
 import { useRouter } from "vue-router";
+//See: https://router.vuejs.org/guide/advanced/composition-api.html#accessing-the-router-and-current-route-inside-setup
+const router = useRouter();
+///const route = useRoute();
 
-export default defineComponent({
-  name: "App",
-  components: {},
-  setup() {
-    //See: https://router.vuejs.org/guide/advanced/composition-api.html#accessing-the-router-and-current-route-inside-setup
-    const router = useRouter();
-    ///const route = useRoute();
+const redirect = () => {
+  router.push({ name: "home" });
+};
 
-    const redirect = () => {
-      router.push({ name: "home" });
-    };
+const back = () => {
+  router.go(-1);
+};
 
-    const back = () => {
-      router.go(-1);
-    };
+const forward = () => {
+  router.go(1);
+};
 
-    const forward = () => {
-      router.go(1);
-    };
-
-    return { redirect, back, forward }; //, tools, handleClick, order}
-  },
-});
+//return { redirect, back, forward }; //, tools, handleClick, order}
 </script>
 
 <style>

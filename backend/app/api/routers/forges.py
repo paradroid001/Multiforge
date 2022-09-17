@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException, Response
 from starlette import status
 import httpx
 import asyncio
@@ -28,21 +28,32 @@ async def get_forge_by_id(forge_id: PyObjectId, settings: Settings) -> Forge:
     return forge
 
 
-async def request_forge_details(client: httpx.AsyncClient, forge: Forge, settings: Settings):
+async def request_forge_status(client: httpx.AsyncClient, forge: Forge, settings: Settings):
 
-    suffix = "/tool/all/"
+    suffix = "/stats/"
 
-    def format_error(error):
-        return f"Error {forge.url+suffix}: {str(error)}"
+    class ForgeDetails():
+        status: int
+        details: str
+
+        def __init__(self, status: int = None, details: int = None):
+            self.status = status
+            self.details = details
+
+    def format_error(status: int, error):
+        return ForgeDetails(status=status, details=f"Error {forge.url+suffix}: {str(error)}")
+
+    response_status = 400
     try:
         response = await client.get(str(forge.url+suffix))
-        return response.text
+        response_status = response.status_code  # https.AsyncClient format
+        return ForgeDetails(status=response.status_code, details=response.text)
     except ConnectionRefusedError as error:
-        return format_error(error)
+        return format_error(response_status, error)
     except OSError as error:
-        return format_error(error)
+        return format_error(response_status, error)
     except Exception as error:
-        return format_error(error)
+        return format_error(response_status, error)
 
 
 @router.get("/")
@@ -61,7 +72,7 @@ async def check_forges(request: Request, settings: Settings = Depends(get_settin
     forges = forges_collection.find()  # all
 
     async with httpx.AsyncClient() as client:
-        tasks = [request_forge_details(client, Forge(
+        tasks = [request_forge_status(client, Forge(
             **forge), settings) for forge in forges]
         result = await asyncio.gather(*tasks)
         return result
@@ -74,7 +85,7 @@ async def check_forge(forge_id: PyObjectId, settings: Settings = Depends(get_set
     forge = await get_forge_by_id(forge_id, settings)
 
     async with httpx.AsyncClient() as client:
-        result = await request_forge_details(client, forge, settings)
+        result = await request_forge_status(client, forge, settings)
         print(result)
         return result
     return None

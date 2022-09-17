@@ -8,11 +8,13 @@
         <div class="url">
           <a :href="forge.url">{{ forge.url }}</a>
         </div>
-        {{ forge.status }}
         <div v-if="forge.status == 'offline'">Forge is offline</div>
-        <div v-if="forge.status == 'online'">Forge is ALIVE</div>
-        <div v-if="forge.tools">
-          <ToolList :tools="forge.tools" :order="order" />
+        <div v-if="forge.status == 'online'">
+          <div>Forge is ALIVE</div>
+          <div>{{ forge.stats }}</div>
+          <div v-if="forge.tools">
+            <ToolList :tools="forge.tools" :order="order" />
+          </div>
         </div>
       </li>
     </ul>
@@ -44,7 +46,6 @@ onMounted(async () => {
         forge.tools = resp.data ? resp.data : [];
         console.log(`Got forge tools ${forge.tools}`);
         const statusresp: JSONResponse<{}> = await forge.checkStatus(props.url);
-        console.log(statusresp);
       }
     })
   );

@@ -1,6 +1,8 @@
 export interface ForgeTool {
     id: string,
     name: string,
-    url: string,
-    description: string
+    root: string,
+    command: string,
+    args: [string],
+    description: string | null | undefined
 }

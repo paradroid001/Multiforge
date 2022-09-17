@@ -1,4 +1,5 @@
 import { ForgeTool } from "./ForgeTool";
+import { ForgeStatus, ForgeStats } from "./ForgeStatus";
 import { JSONResponse } from "./JSONResponse";
 
 //Separating into data interface/class
@@ -10,6 +11,7 @@ export class Forge {
     url: string;
     tools: ForgeTool[];
     status = "offline";
+    stats: ForgeStats | null | undefined;
     
     //This constructor is for making forges out of 'forge data'
     constructor( data : Partial<Forge>){
@@ -18,6 +20,7 @@ export class Forge {
         this.url = data.url as string;
         this.tools = data.tools as ForgeTool[];
         this.status = data.status as string;
+        this.stats = null;
     }
 
     async getDetails(): Promise<JSONResponse<ForgeTool[]>> {
@@ -52,15 +55,28 @@ export class Forge {
         return ret;
     }
 
-    async checkStatus(multiforge_url: string): Promise<JSONResponse<{name:string, tools: ForgeTool[]}>> {
-        const ret: JSONResponse<{name:string, tools: ForgeTool[]}> = new JSONResponse<{name:string, tools: ForgeTool[]}>();
+    async checkStatus(multiforge_url: string): Promise<JSONResponse<ForgeStatus>> {
+        const ret: JSONResponse<ForgeStatus> = new JSONResponse<ForgeStatus>();
         try {
             const response = await fetch(multiforge_url + "/forges/check/" + this.id + "/");
             ret.status=response.status;
             //ret.data = [];
             if (response.ok) {
                 ret.data = await response.json();
-                this.status = 'online';
+                //the response data will be a json obj with status and detail
+                const forgeStatus: ForgeStatus | null = ret.data;
+                if (forgeStatus?.status != 400)
+                {
+                    console.log("FORGE WAS ONLINE: " + forgeStatus?.status);
+                    this.status = 'online';
+                    this.stats = forgeStatus?.details;
+                }
+                else
+                {
+                    console.log("FORGE WAS OFFLINE");
+                    this.status = 'offline';
+                }
+                
             } else {
                 ret.errors = "No forge data";
             }

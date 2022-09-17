@@ -12,7 +12,7 @@
 import { ref } from "vue";
 import { Forge } from "../types/Forge";
 import { JSONResponse } from "../types/JSONResponse";
-import getForges from "@/utils/getForge";
+import getForges from "../utils/getForge";
 import LiteGraph from "../components/LiteGraph.vue";
 
 const forgeArray = ref<Forge[]>([]);
