@@ -1,5 +1,9 @@
-from typing import List, Any
+from typing import List, Any, Optional, Union, Dict
+from enum import Enum
 
+from fastapi import WebSocket
+from pydantic import BaseModel
+import json
 import httpx
 from bson import ObjectId
 
@@ -18,6 +22,36 @@ class PyObjectId(ObjectId):
     @classmethod
     def __modify_schema__(cls, field_schema):
         field_schema.update(type='string')
+
+
+class AsyncResponse(BaseModel):
+    status: int = 500
+    data: Any = None
+    url: str
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # if 'status' in kwargs:
+        #    self.status = kwargs['status']
+        # if 'data' in kwargs:
+        #    self.data = kwargs['data']
+        if 'url' in kwargs:
+            self.url = kwargs['url']
+            # await self.request(self.url)
+
+    async def request(self) -> 'AsyncResponse':
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(self.url)
+                self.status = response.status_code  # https.AsyncClient format
+                self.data = response.json()
+                return self
+            except ConnectionRefusedError as error:
+                return self
+            except OSError as error:
+                return self
+            except Exception as error:
+                return self
 
 
 class AsyncListResponse():
@@ -43,32 +77,3 @@ async def request_list_from_url(url: str) -> AsyncListResponse:
             return AsyncListResponse()
         except Exception as error:
             return AsyncListResponse()
-
-# , settings: Settings):
-
-
-async def request_forge_tools(url: str):
-
-    # class ForgeDetails():
-    #    status: int
-    #    details: str
-
-    #    def __init__(self, status: int = None, details: int = None):
-    #        self.status = status
-    #        self.details = details
-
-    # def format_error(status: int, error):
-    #    return ForgeDetails(status=status, details=f"Error {forge.url+suffix}: {str(error)}")
-
-    response_status = 400
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(url)
-            response_status = response.status_code  # https.AsyncClient format
-            return response.json()
-        except ConnectionRefusedError as error:
-            return []
-        except OSError as error:
-            return []
-        except Exception as error:
-            return []

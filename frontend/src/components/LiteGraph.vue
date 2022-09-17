@@ -15,10 +15,15 @@
 
 <script lang="ts">
 import { Forge } from "../types/Forge";
-import { ForgeTool } from "../types/ForgeTool";
+import {
+  ForgeTool,
+  PositionalValue,
+  FlaggedValue,
+  OutputValue,
+} from "../types/ForgeTool";
 import { JSONResponse } from "../types/JSONResponse";
 import { createNode, createNodeEx } from "../utils/liteGraphUtils";
-import { defineComponent, onMounted, PropType, ref } from "vue";
+import { defineComponent, onMounted, PropType, ref, watch } from "vue";
 import * as litegraph from "litegraph.js";
 import uuid4 from "uuid";
 import "litegraph.js/css/litegraph.css";
@@ -39,25 +44,47 @@ export default defineComponent({
     const outputContext = ref<CanvasRenderingContext2D | null>();
     let graph: litegraph.LGraph; // = null;
     let lGraphCanvas: litegraph.LGraphCanvas; // = null;
+    const forgeTools = ref<ForgeTool[]>([]);
+    const backendURL_WS: string = import.meta.env.VITE_BACKEND_URL_WS;
+    watch(forgeTools, async (newForgeTools, oldForgeTools) => {
+      console.log("New");
+    });
 
     (async () => {
       //console.log(props.forgesArray);
       console.log("Listing forges");
       props.forgesArray.forEach(async (forge: Forge) => {
-        //forge.tools.forEach((tool:ForgeTool)=>{
-        //  console.log("Tool = " + tool.id + ", " + tool.name);
-        //});
-
         let ret: JSONResponse<ForgeTool[]> = await forge.getDetails();
-        //console.log(ret.data);
-        console.log("I am a forge: " + forge.name);
-        console.log(`I have tools:`);
+        //console.log("I am a forge: " + forge.name);
+        //console.log(`I have tools:`);
         ret?.data?.forEach((tool: ForgeTool) => {
-          //console.log(`${tool.name}: ${tool.url}`);
-          console.log(tool);
+          forgeTools.value.push(tool);
+
+          let tool_inputs: Map<string, string> = new Map<string, string>();
+          let tool_output: Map<string, string> = new Map<string, string>();
+
+          tool.args.forEach(
+            (
+              value: PositionalValue | FlaggedValue,
+              index: number,
+              array: (PositionalValue | FlaggedValue)[]
+            ) => {
+              //console.log(array[index]);
+              //console.log(value);
+              tool_inputs.set(value.name, value.value_type);
+            }
+          );
+          tool_output.set(tool.output.name, tool.output.value_type);
+
+          createNodeEx(forge.name, {
+            inputs: Object.fromEntries(tool_inputs),
+            outputs: Object.fromEntries(tool_output),
+            forge_id: forge.id,
+            title: tool.name,
+            url: `${backendURL_WS}/forges/run/${forge.id}/${tool.name}/`,
+          });
         });
       });
-      console.log("Finished listing forges");
     })();
 
     onMounted(() => {
@@ -101,7 +128,7 @@ export default defineComponent({
       }
 
       /*
-            
+
             createNode("modV/visualInput", {
       title: "Visual Input",
       outputs: {
@@ -306,6 +333,7 @@ export default defineComponent({
       }
     });
     */
+      console.log("Finished OnMounted");
     });
 
     const resize = () => {

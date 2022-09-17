@@ -20,8 +20,8 @@ const forgeArray = ref<Forge[]>([]);
 const { loadForges } = getForges();
 const error = ref<string | null>(null);
 (async () => {
-  let backendURL = "http://127.0.0.1:8000/api/forges/";
-  let f: JSONResponse<Forge[]> = await loadForges(backendURL);
+  const backendURL = ref<string>(import.meta.env.VITE_BACKEND_URL + "/forges");
+  let f: JSONResponse<Forge[]> = await loadForges(backendURL.value);
   forgeArray.value = f.data ? f.data : [];
 })();
 </script>

@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, Request, HTTPException, Response
+from fastapi import APIRouter, Depends, Request, HTTPException, Response, WebSocket
 from starlette import status
 import httpx
 import asyncio
@@ -8,14 +8,17 @@ from app.dependencies import get_settings
 from app.settings import Settings
 from app.models.forge import Forge, ForgePublic
 from app.util_classes import PyObjectId
+from app.core.websockerconnectionmanager import WebSocketConnectionManager
 
 router = APIRouter(
     prefix="/api/forges",
     tags=["forges"],
 )
 
+websocket_manager = WebSocketConnectionManager()
 
-async def get_forge_by_id(forge_id: PyObjectId, settings: Settings) -> Forge:
+
+async def get_forge_by_id(forge_id: PyObjectId, settings: Settings = Depends(get_settings)) -> Forge:
     # forges_collection = await settings.get_collection('forges')
     #forge_dict = forges_collection.find_one({'_id': forge_id})
     # if not forge_dict:
@@ -119,3 +122,13 @@ async def delete_forge(forge_id: PyObjectId, settings: Settings = Depends(get_se
     if forge:
         forge_collection = await Forge.collection(settings)
         forge_collection.delete_one({'_id': forge.id})
+
+
+@router.websocket('/run/{forge_id}/{tool_name}/')
+async def run_tool_ws(websocket: WebSocket):
+    runsocket = await websocket_manager.connect(websocket)
+    await runsocket.tick()
+    # while True:
+    #    data = await websocket.receive_text()
+    #    print("Websocket recieved text " + data)
+    #    await websocket.send_text(f"Message Text was {data}")
