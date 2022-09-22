@@ -38,66 +38,15 @@ import { OrderTerm } from "../types/OrderTools";
 const props = defineProps<{
   tools: ForgeTool[];
   order: OrderTerm;
-  /*
-        tools: {
-            required: true,
-            type: Array as PropType<ForgeTool[]> //propType gives us typed props
-        },
-        order: {
-            required: true,
-            type: String as PropType<OrderTerm>
-        }
-        */
 }>();
 const orderedTools = computed(() => {
-  console.log("Num tools = " + props?.tools?.length);
-  console.log(props?.tools);
-  //return props.tools;
-  //new temp array, so we aren't mutating tools prop
+  //console.log("Num tools = " + props?.tools?.length);
+  //console.log(props?.tools);
   return [...props.tools].sort((a: ForgeTool, b: ForgeTool) => {
     return a[props.order] > b[props.order] ? 1 : -1;
   });
 });
 </script>
-
-<!--
-<script lang="ts">
-import { defineComponent, PropType, computed } from 'vue'
-import ForgeTool from '@/types/ForgeTool'
-import OrderTerm from '@/types/OrderTools'
-
-export default defineComponent({
-    props: {
-        tools: {
-            required: true,
-            type: Array as PropType<ForgeTool[]> //PropType gives us typed props
-        },
-        order: {
-            required: true,
-            type: String as PropType<OrderTerm>
-        }
-    },
-    setup(props) {
-
-        /*
-        const orderedTools = computed( () => {
-            //new temp array, so we aren't mutating tools prop
-            return [...props.tools].sort( (a: ForgeTool, b: ForgeTool) => {
-                return a[props.order] > b[props.order] ? 1 : -1;
-            }); 
-        });
-        */
-        const orderedTools = computed( () => {
-            console.log("Num tools = " + props.tools.length);
-            console.log(props.tools);
-           return props.tools;
-        });
-
-        return { orderedTools }
-    }
-})
-</script>
--->
 
 <style scoped>
 .tool-list {

@@ -10,8 +10,8 @@ export class JSONResponse<T>
 
     async load(url:string): Promise<JSONResponse<T>> {
         try {
-            console.log(`fetching ${url} with options:`);
-            console.log(this.options);
+            //console.log(`fetching ${url} with options:`);
+            //console.log(this.options);
             const response = await fetch(url, this.options);
             this.status = response.status;
             if (response.ok) {
@@ -23,7 +23,7 @@ export class JSONResponse<T>
         }
         catch (err) {
             const e: Error = err as Error;
-            this.errors = "No data";
+            this.errors = `No data: ${e}`;
         }
         return Promise.resolve(this);
     }

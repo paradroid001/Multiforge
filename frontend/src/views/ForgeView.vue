@@ -29,38 +29,3 @@ const backendURL = ref<string>(import.meta.env.VITE_BACKEND_URL);
   forgeArray.value = f.data ? f.data : [];
 })();
 </script>
-
-<!--
-<script lang="ts">
-  import getForges from "@/utils/getForge";
-  import Forge from "@/types/Forge";
-  import ForgeTool from "@/types/ForgeTool"
-  import JSONResponse from '@/types/JSONResponse';
-  import { defineComponent, onMounted, ref, computed } from 'vue';
-
-  export default defineComponent({
-    name: "ForgeView",
-    components: {ForgeList},
-    setup() 
-    {
-      const {loadForges} = getForges();
-      const forgeArray = ref<Forge[]>([]);
-      const error = ref<string | null>(null);
-
-      //This little async thing:
-      //See
-      //https://stackoverflow.com/questions/64117116/how-can-i-use-async-await-in-the-vue-3-0-setup-function-using-typescript
-      (async () => {
-        let backendURL = "http://127.0.0.1:8000/api/forges/";
-        let f:JSONResponse<Forge[]> = await loadForges(backendURL);        
-        forgeArray.value = f.data ? f.data:[];
-      })();
-
-      return {
-        error, forgeArray
-      };
-    }
-  });
-  
-</script>
--->

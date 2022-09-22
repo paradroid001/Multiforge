@@ -54,7 +54,7 @@ export default defineComponent({
     });
     (async () => {
       //console.log(props.forgesArray);
-      console.log("Listing forges");
+      //console.log("Listing forges");
       props.forgesArray.forEach(async (forge: Forge) => {
         let ret: JSONResponse<ForgeTool[]> = await forge.getDetails();
         //console.log("I am a forge: " + forge.name);
@@ -132,22 +132,6 @@ export default defineComponent({
             this.setProperty("textValue", this.getInputData(0));
           },
         });
-        /*
-                createNodeEx("brad", {
-                  inputs: { one: "string", two: "number", three: "boolean" },
-                  outputs: { four: "string", five: "number", six: "boolean" },
-                  title: "Bradclass2",
-                  //size: [400, 500],
-                });
-                createNodeEx("brad", {
-                  inputs: { one: "string", two: "number", three: "boolean" },
-                  outputs: { four: "string", five: "number", six: "boolean" },
-                  title: "Bradclass3",
-                  //size: [400, 500],
-                });
-                //const e: ExecNode = new ExecNode();
-                //litegraph.LiteGraph.registerNodeType("Something", e);
-              */
       }
       /*
 
@@ -355,7 +339,7 @@ export default defineComponent({
             }
           });
           */
-      console.log("Finished OnMounted");
+      //console.log("Finished OnMounted");
     });
     const resize = () => {
       const { devicePixelRatio: dpr } = window;
@@ -368,13 +352,13 @@ export default defineComponent({
     };
     const play = () => {
       console.log("PLAY");
-      if (graph.value.status == litegraph.LGraph.STATUS_STOPPED) {
+      if (graph.value?.status == litegraph.LGraph.STATUS_STOPPED) {
         graph.value?.start();
       }
     };
     const stop = () => {
       console.log("STOP");
-      if (graph.value.status != litegraph.LGraph.STATUS_STOPPED) {
+      if (graph.value?.status != litegraph.LGraph.STATUS_STOPPED) {
         graph.value?.stop();
       }
     };

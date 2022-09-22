@@ -31,16 +31,9 @@ export class Forge {
             //ret.data = [];
             if (response.ok) {
                 ret.data = await response.json();
-                console.log("Forge got its data");
-                /*
-                data.forEach( (item:any) => {
-                    ret.data?.push(item);
-                    console.log(item);
-                })
-                */
-                //this.status = "online";
+                //console.log("Forge got its data");
                 ret?.data?.forEach( (item: any) => {
-                    console.log(item);
+                    //console.log(item);
                     this.tools.push(item); //item conforms to forgetool interface?
                 });
             } else {
@@ -67,13 +60,13 @@ export class Forge {
                 const forgeStatus: ForgeStatus | null = ret.data;
                 if (forgeStatus?.status != 400)
                 {
-                    console.log("FORGE WAS ONLINE: " + forgeStatus?.status);
+                    //console.log("FORGE WAS ONLINE: " + forgeStatus?.status);
                     this.status = 'online';
                     this.stats = forgeStatus?.details;
                 }
                 else
                 {
-                    console.log("FORGE WAS OFFLINE");
+                    //console.log("FORGE WAS OFFLINE");
                     this.status = 'offline';
                 }
                 

@@ -28,17 +28,17 @@ import * as litegraph from "litegraph.js";
 import { JSONResponse } from "../types/JSONResponse";
 
 const props = defineProps<{ graph: litegraph.LGraph }>();
-const key: string = "";
+const backendurl = import.meta.env.VITE_BACKEND_URL;
 const filenames = ref<string[][]>([]);
 const saveName = ref<string>("");
-let selected: string = "";
+let selected: string = ""; //selected graph to load.
 
 const loadGraphNames = async () => {
-  console.log("Loading graphnames");
+  //console.log("Loading graphnames");
   const ret: JSONResponse<string[][]> = new JSONResponse<string[][]>();
-  await ret.load("http://127.0.0.1:8000/api/graphs/all/names/");
+  await ret.load(`${backendurl}/graphs/all/names/`);
   if (ret.data) {
-    console.log(ret.status);
+    //console.log(ret.status);
     filenames.value = ret.data;
   }
 };
@@ -47,10 +47,10 @@ const loadGraphNames = async () => {
 loadGraphNames();
 
 const loadGraph = async (graph_id: string): Promise<string | null> => {
-  console.log("Trying to load graph " + graph_id);
+  //console.log("Trying to load graph " + graph_id);
   const req: JSONResponse<string> = new JSONResponse<string>();
   let ret: string | null = null;
-  await req.load(`http://127.0.0.1:8000/api/graphs/${graph_id}/`);
+  await req.load(`${backendurl}/graphs/${graph_id}/`);
   if (req.status == 200) {
     ret = req.data;
   }
@@ -75,57 +75,15 @@ const saveGraphName = async (
   if (response.status == 200) {
     return Promise.resolve(response.data);
   } else return Promise.resolve(null);
-
-  /*
-  try {
-    const response = await fetch(url + "/" + name + "/", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json;charset=utf-8",
-      },
-      body: JSON.stringify({ name: name, content: content }),
-    });
-    ret.status = response.status;
-    ret.data = [];
-    if (response.ok) {
-      const data: string[] = await response.json();
-      data.forEach((item: string) => {
-        ret.data?.push(item);
-      });
-    } else {
-      ret.errors = "No data";
-    }
-  } catch (err) {
-    const e: Error = err as Error;
-    ret.errors = e.message;
-  }
-  return Promise.resolve(ret);
-}
-*/
 };
-
-/*
-(async () => {
-  let response: JSONResponse<string[][]> = await loadGraphNames(
-    "http://127.0.0.1:8000/api/graphs/all/names/"
-  );
-  if (response.data) {
-    filenames.value = response.data;
-  } else {
-    console.log("retrieve files failed");
-  }
-})();
-
-*/
 
 const load = async () => {
   //load whatever is currently selected in the dropdown.
-  console.log("load " + selected);
+  //console.log("load " + selected);
   let graphText = await loadGraph(selected);
   if (graphText) {
-    console.log("Load graph: ");
-    console.log(graphText);
+    //console.log("Load graph: ");
+    //console.log(graphText);
     let graphobj = JSON.parse(graphText);
     if (graphobj && graphobj.length != 0) {
       props.graph.configure(graphobj);
@@ -137,7 +95,7 @@ const load = async () => {
 
 const save = async () => {
   //save to whatever name is currently typed in the input.
-  console.log("save");
+  //console.log("save");
   if (saveName.value !== "") {
     const content: litegraph.serializedLGraph<
       litegraph.SerializedLGraphNode<litegraph.LGraphNode>,
@@ -145,22 +103,10 @@ const save = async () => {
       litegraph.SerializedLGraphGroup
     > = props.graph.serialize();
 
-    /*
-        let response: JSONResponse<string[]> = await saveGraphName(
-      saveName.value,
-      JSON.stringify(content),
-      "http://127.0.0.1:8000/api/graphs/save"
-    );
-    if (response.data) {
-      filenames.value.push(response.data);
-    } else {
-      console.log("retrieve files failed");
-    }
-    */
     let responsedata: string[] | null = await saveGraphName(
       saveName.value,
       JSON.stringify(content),
-      "http://127.0.0.1:8000/api/graphs/save/" + saveName.value + "/"
+      `${backendurl}/graphs/save/${saveName.value}/`
     );
     if (responsedata) {
       filenames.value.push(responsedata);
@@ -169,11 +115,11 @@ const save = async () => {
 };
 
 const onLoadFileChange = (event: any) => {
-  console.log(event.target.value);
+  //console.log(event.target.value);
   selected = event.target.value;
 };
 const onSaveNameChange = (event: any) => {
-  console.log(event.target.value);
+  //console.log(event.target.value);
   saveName.value = event.target.value;
 };
 </script>
