@@ -1,14 +1,18 @@
 //import websocket;
+import GraphNode from "./GraphNode";
+type GraphNode = typeof GraphNode
 
 export class ExecSocket
 {
+    graphNode: GraphNode;
     configid: number;
     finishCallback: (result: string) => any;
     toolDetails: Record<string, unknown>;
     socket!: WebSocket;
 
-    constructor()
+    constructor(graphNode: GraphNode)
     {
+        this.graphNode = graphNode;
         this.configid = 0;
         this.finishCallback = this.defaultFinishCallback;
         this.toolDetails = {};
@@ -16,7 +20,7 @@ export class ExecSocket
 
     defaultFinishCallback(result: string)
     {
-        console.log(result);
+        this.graphNode.log(result);
     }
 
     start(url: string)
@@ -44,13 +48,13 @@ export class ExecSocket
 
     send(data:any)
     {
-        console.log("in send, data:");
-        console.log(data);
-        console.log("sending: " + JSON.stringify(data));
+        this.graphNode.log("in send, data:");
+        this.graphNode.log(data);
+        this.graphNode.log("sending: " + JSON.stringify(data));
         this.socket.send(JSON.stringify(data));
     }
 
-    setFinishCallback(callback)
+    setFinishCallback(callback: any)
     {
         this.finishCallback = callback;
     }
@@ -63,13 +67,13 @@ export class ExecSocket
 
     onMessage(textdata: string)
     {
-        console.log("Exec socket recieved data: " + textdata);
+        this.graphNode.log("Exec socket recieved data: " + textdata);
         const data = JSON.parse(textdata);
         switch (data.messagetype)
         {
             case "initok":
                 {
-                    console.log('initok');
+                    this.graphNode.log('initok');
                     const senddata:any = {};
                     senddata['messagetype'] = 'indata';
                     senddata['data'] = this.toolDetails.toolArgs;
@@ -78,24 +82,24 @@ export class ExecSocket
                 }
             case 'outdata':
                 {
-                    console.log('recieved data ' + data['data']);
-                    this.finishCallback( 
-                        JSON.stringify({status: 'OK', output: data['data']}));
+                    this.graphNode.log('recieved data ' + data['data']);
+                    this.finishCallback( JSON.stringify(data['data']) );
+                        //JSON.stringify({status: 'OK', output: data['data']}));
                     break;
                 }
             case 'error':
-                console.log('Errors not yet supported');
+                this.graphNode.log('Errors not yet supported');
                 break;
         }
     }
 
     onClosed(e)
     {
-        console.log("Exec socket closed " + e);
+        this.graphNode.log("Exec socket closed " + e);
     }
     onOpened(e)
     {
-        console.log("Exec socket opened " + e);
+        this.graphNode.log("Exec socket opened " + e);
 
         const message:any = {}
         message['messagetype'] = 'init';
@@ -107,6 +111,6 @@ export class ExecSocket
     }
     onError(e)
     {
-        console.log("Exec socket error: " + e);
+        this.graphNode.log("Exec socket error: " + e);
     }
 }

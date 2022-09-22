@@ -56,14 +56,28 @@ const createNodeEx = (path, params) => {
       this[key] = params[key];
     });
 
-    this.execsocket = new ExecSocket();
+    this.execsocket = new ExecSocket(this);
     this.data = ""; //data that has come from running the tool
     this.dirty = true; //do we have new data?
     this.running = false; //are we currently running?
     this.url = params.url;
     this.forge_id = params.forge_id;
     this.tool_name = params.title;
+
+    this.inputcache = {};
+
     this.addProperty("url", params.url);
+    this.addProperty("debug", false);
+    this.addProperty("useCachedValue", false);
+    //console.log(`debug property is ${this.properties["debug"]}`);
+
+    this.debugToggle = this.addWidget("toggle", "debug", false, {
+      property: "debug",
+    });
+    this.cacheToggle = this.addWidget("toggle", "useCache", false, {
+      property: "useCachedValue",
+    });
+
     //this.addProperty("shellurl", "http://127.0.0.1:9998/aurlforashell");
     //this.addProperty("execurl", document.location.host + "/some exec url");
   }
@@ -83,13 +97,40 @@ const createNodeEx = (path, params) => {
     node.desc = params.desc;
   }
 
+  node.prototype.isDebug = function () {
+    return this.properties["debug"];
+  };
+
+  node.prototype.log = function () {
+    if (this.isDebug()) {
+      console.log(...arguments);
+    }
+  };
+
   node.prototype.onExecute = function () {
+    //Only run if something in the input changes
+    //OR if there are no inputs.
+    for (let name in this.inputcache) {
+      let val = this.getInputDataByName(name);
+      if (val != this.inputcache[name]) {
+        this.dirty = true;
+        console.log(
+          this.title +
+            " input " +
+            name +
+            " changed from " +
+            this.inputcache[name] +
+            " to " +
+            val
+        );
+        this.inputcache[name] = val;
+      }
+    }
+
     //console.log(this);
-    if (this.running == true) {
-      //not sure?
-    } else {
+    if (this.dirty === true && this.running === false) {
       this.running = true;
-      console.log("Starting node " + params.title);
+      this.log("Starting node " + params.title);
       let thisObj = this;
 
       //A callback for the socket to use when finishing.
@@ -102,20 +143,32 @@ const createNodeEx = (path, params) => {
         argdata[this.inputs[prop].name] = this.getInputData(prop);
       }
       this.execsocket.setToolDetails(this.forge_id, this.tool_name, argdata);
-
+      this.execsocket.setFinishCallback(executed);
       this.execsocket.start(this.url);
-      //this.setOutputData(0, "Booga");
+    } else {
+      this.onFinish(this.data);
     }
   };
   node.prototype.onFinish = function (data) {
-    this.data = data;
-    this.dirty = false;
-    this.running = false;
-    this.setOutputData(0, JSON.parse(data));
+    if (this.data != data) {
+      this.data = data;
+      this.dirty = false;
+      //this.running = false;
+      this.setOutputData(0, JSON.parse(data));
+    }
   };
 
   node.prototype.reset = function () {
     this.dirty = false;
+    if (this.inputs) {
+      for (let prop of this.inputs) {
+        this.inputcache[prop.name] = undefined;
+      }
+    } else {
+      //if you have no inputs, we will mark
+      //you dirty once, so you can do your thing.
+      this.dirty = true;
+    }
   };
 
   node.prototype.onStart = function () {
@@ -123,7 +176,33 @@ const createNodeEx = (path, params) => {
   };
   node.prototype.onStop = function () {
     this.reset();
-    this.running = false;
+    //this.running = false;
+  };
+
+  node.prototype.onDrawBackground = function (nodeContext) {
+    if (this.flags.collapsed) return;
+    this.boxcolor = this.running ? "#f00" : "#345";
+    var size = this.size;
+    //nodeContext.save()
+    //console.log("DRAWING");
+    let ctx = nodeContext;
+    ctx.save();
+    //ctx.fillStyle = this.boxcolor;
+    //ctx.fillRect(0, 0, size[0], size[1]);
+    ctx.strokeStyle = this.boxcolor;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(size[0], 0);
+    ctx.lineTo(size[0], size[1]);
+    ctx.lineTo(0, size[1]);
+    ctx.lineTo(0, 0);
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  node.prototype.onDrawForeground = function (ctx, graphcanvas) {
+    this.boxcolor = this.running ? "#f00" : "#345";
   };
 
   litegraph.LiteGraph.registerNodeType(path + "/" + node.title, node);

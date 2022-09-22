@@ -8,6 +8,7 @@
       <i class="mdi mdi-flask" aria-hidden="true"></i>
       STOP
     </button>
+    <LiteGraphSerialiser :graph="graph"></LiteGraphSerialiser>
     <canvas ref="canvas" class="graph-canvas"></canvas>
     <canvas ref="output" class="output-canvas"></canvas>
   </div>
@@ -28,6 +29,7 @@ import * as litegraph from "litegraph.js";
 import uuid4 from "uuid";
 import "litegraph.js/css/litegraph.css";
 import { createExecNode, ExecNode } from "../utils/execNode";
+import LiteGraphSerialiser from "./LiteGraphSerialiser.vue";
 
 export default defineComponent({
   name: "LiteGraph",
@@ -42,14 +44,14 @@ export default defineComponent({
     const context = ref<CanvasRenderingContext2D | null>();
     const output = ref<HTMLCanvasElement>();
     const outputContext = ref<CanvasRenderingContext2D | null>();
-    let graph: litegraph.LGraph; // = null;
+    let graph = ref<litegraph.LGraph>(); // = null;
     let lGraphCanvas: litegraph.LGraphCanvas; // = null;
     const forgeTools = ref<ForgeTool[]>([]);
     const backendURL_WS: string = import.meta.env.VITE_BACKEND_URL_WS;
     watch(forgeTools, async (newForgeTools, oldForgeTools) => {
+      //Not sure what I wanted to do here?
       console.log("New");
     });
-
     (async () => {
       //console.log(props.forgesArray);
       console.log("Listing forges");
@@ -59,10 +61,8 @@ export default defineComponent({
         //console.log(`I have tools:`);
         ret?.data?.forEach((tool: ForgeTool) => {
           forgeTools.value.push(tool);
-
           let tool_inputs: Map<string, string> = new Map<string, string>();
           let tool_output: Map<string, string> = new Map<string, string>();
-
           tool.args.forEach(
             (
               value: PositionalValue | FlaggedValue,
@@ -75,7 +75,6 @@ export default defineComponent({
             }
           );
           tool_output.set(tool.output.name, tool.output.value_type);
-
           createNodeEx(forge.name, {
             inputs: Object.fromEntries(tool_inputs),
             outputs: Object.fromEntries(tool_output),
@@ -86,10 +85,8 @@ export default defineComponent({
         });
       });
     })();
-
     onMounted(() => {
       window.addEventListener("resize", resize);
-
       //const bufferCanvas = document.createElement("canvas");
       //const bufferContext = bufferCanvas.getContext("2d");
       //Output Canvas
@@ -97,245 +94,269 @@ export default defineComponent({
       if (canvas.value && output.value) {
         outputContext.value = output.value.getContext("2d");
         context.value = canvas.value.getContext("2d");
-        graph = new litegraph.LGraph();
-        lGraphCanvas = new litegraph.LGraphCanvas(canvas.value, graph);
+        graph.value = new litegraph.LGraph();
+        lGraphCanvas = new litegraph.LGraphCanvas(canvas.value, graph.value);
         lGraphCanvas.resize();
         resize();
-
         //this.graph.start(); //this will be done by a button
-
-        createNodeEx("brad", {
-          inputs: { one: "string", two: "number", three: "boolean" },
-          outputs: { four: "string", five: "number", six: "boolean" },
-          title: "Bradclass1",
-          //size: [400, 500],
-          desc: "This is an example",
+        createNode("Multiforge/ParseJSON", {
+          inputs: { json: "string" },
+          outputs: { obj: "object" },
+          title: "ParseJSON",
+          desc: "ParsesJSON from a string to an object",
+          onExecute() {
+            let data: string = this.getInputData(0);
+            if (data && data !== this.data) {
+              this.data = data;
+              const obj = JSON.parse(this.data);
+              this.setOutputData(obj);
+            }
+          },
         });
-        createNodeEx("brad", {
-          inputs: { one: "string", two: "number", three: "boolean" },
-          outputs: { four: "string", five: "number", six: "boolean" },
-          title: "Bradclass2",
-          //size: [400, 500],
+        createNode("Multiforge/TextDisplay", {
+          inputs: { text: "string" },
+          outputs: { text: "string" },
+          title: "Text Display",
+          desc: "Displays text",
+          properties: { textValue: "Hello" },
+          widgets: [
+            {
+              name: "displayText",
+              type: "text",
+              text: "",
+              options: { property: "textValue" },
+            },
+          ],
+          onExecute() {
+            this.setOutputData(this.getInputData(0));
+            this.setProperty("textValue", this.getInputData(0));
+          },
         });
-        createNodeEx("brad", {
-          inputs: { one: "string", two: "number", three: "boolean" },
-          outputs: { four: "string", five: "number", six: "boolean" },
-          title: "Bradclass3",
-          //size: [400, 500],
-        });
-        //const e: ExecNode = new ExecNode();
-        //litegraph.LiteGraph.registerNodeType("Something", e);
+        /*
+                createNodeEx("brad", {
+                  inputs: { one: "string", two: "number", three: "boolean" },
+                  outputs: { four: "string", five: "number", six: "boolean" },
+                  title: "Bradclass2",
+                  //size: [400, 500],
+                });
+                createNodeEx("brad", {
+                  inputs: { one: "string", two: "number", three: "boolean" },
+                  outputs: { four: "string", five: "number", six: "boolean" },
+                  title: "Bradclass3",
+                  //size: [400, 500],
+                });
+                //const e: ExecNode = new ExecNode();
+                //litegraph.LiteGraph.registerNodeType("Something", e);
+              */
       }
-
       /*
 
-            createNode("modV/visualInput", {
-      title: "Visual Input",
-      outputs: {
-        context: "renderContext"
-      },
-      onExecute() {
-        if (
-          this.outputs[0] &&
-          this.outputs[0].links &&
-          !this.outputs[0].links.length
-        ) {
-          return;
-        }
+                  createNode("modV/visualInput", {
+            title: "Visual Input",
+            outputs: {
+              context: "renderContext"
+            },
+            onExecute() {
+              if (
+                this.outputs[0] &&
+                this.outputs[0].links &&
+                !this.outputs[0].links.length
+              ) {
+                return;
+              }
 
-        this.setOutputData(0, {
-          canvas: bufferCanvas,
-          context: bufferContext,
-          delta: Date.now()
-        });
-      }
-    });
+              this.setOutputData(0, {
+                canvas: bufferCanvas,
+                context: bufferContext,
+                delta: Date.now()
+              });
+            }
+          });
 
-    createNode("modV/visualOutput", {
-      title: "Visual Output",
-      inputs: {
-        context: "renderContext"
-      },
-      onExecute() {
-        const renderContext = this.getInputData(0);
-        if (!renderContext) {
-          return;
-        }
-        outputContext.value.clearRect(0, 0, output.value.width, output.value.height);
-        outputContext.value.drawImage(renderContext.canvas, 0, 0);
-      }
-    });
+          createNode("modV/visualOutput", {
+            title: "Visual Output",
+            inputs: {
+              context: "renderContext"
+            },
+            onExecute() {
+              const renderContext = this.getInputData(0);
+              if (!renderContext) {
+                return;
+              }
+              outputContext.value.clearRect(0, 0, output.value.width, output.value.height);
+              outputContext.value.drawImage(renderContext.canvas, 0, 0);
+            }
+          });
 
-    createNode("modV/contextSplitter", {
-      title: "Context Splitter",
-      inputs: {
-        context: "renderContext"
-      },
-      outputs: {
-        canvas: "canvas",
-        canvasContext: "canvasContext",
-        delta: "number"
-      },
-      onExecute() {
-        const renderContext = this.getInputData(0);
-        if (!renderContext) return;
+          createNode("modV/contextSplitter", {
+            title: "Context Splitter",
+            inputs: {
+              context: "renderContext"
+            },
+            outputs: {
+              canvas: "canvas",
+              canvasContext: "canvasContext",
+              delta: "number"
+            },
+            onExecute() {
+              const renderContext = this.getInputData(0);
+              if (!renderContext) return;
 
-        const { canvas, context, delta } = renderContext;
+              const { canvas, context, delta } = renderContext;
 
-        this.setOutputData(0, canvas);
-        this.setOutputData(1, context);
-        this.setOutputData(2, delta);
-      }
-    });
+              this.setOutputData(0, canvas);
+              this.setOutputData(1, context);
+              this.setOutputData(2, delta);
+            }
+          });
 
-    createNode("modV/visualMonitor", {
-      title: "Visual Monitor",
-      inputs: {
-        context: "renderContext"
-      },
-      size: [300, 200],
-      onExecute() {
-        this._renderContext = this.getInputData(0);
-        this.setDirtyCanvas(true, false);
-      },
-      onDrawForeground(nodeContext) {
-        const [width, height] = this.size;
-        const { _renderContext: rCtx } = this;
-        if (!rCtx) return;
+          createNode("modV/visualMonitor", {
+            title: "Visual Monitor",
+            inputs: {
+              context: "renderContext"
+            },
+            size: [300, 200],
+            onExecute() {
+              this._renderContext = this.getInputData(0);
+              this.setDirtyCanvas(true, false);
+            },
+            onDrawForeground(nodeContext) {
+              const [width, height] = this.size;
+              const { _renderContext: rCtx } = this;
+              if (!rCtx) return;
 
-        const { canvas } = rCtx;
-        nodeContext.drawImage(canvas, 0, 0, width, height);
-      }
-    });
+              const { canvas } = rCtx;
+              nodeContext.drawImage(canvas, 0, 0, width, height);
+            }
+          });
 
-    createNode("modV/contextJoiner", {
-      title: "Context Joiner",
-      inputs: {
-        canvas: "canvas",
-        canvasContext: "canvasContext",
-        delta: "number"
-      },
-      outputs: {
-        context: "renderContext"
-      },
-      onExecute() {
-        const canvas = this.getInputData(0);
-        const context = this.getInputData(1);
-        const delta = this.getInputData(2);
+          createNode("modV/contextJoiner", {
+            title: "Context Joiner",
+            inputs: {
+              canvas: "canvas",
+              canvasContext: "canvasContext",
+              delta: "number"
+            },
+            outputs: {
+              context: "renderContext"
+            },
+            onExecute() {
+              const canvas = this.getInputData(0);
+              const context = this.getInputData(1);
+              const delta = this.getInputData(2);
 
-        this.setOutputData(0, { canvas, context, delta });
-      }
-    });
+              this.setOutputData(0, { canvas, context, delta });
+            }
+          });
 
-    createNode("modV/modules/circle", {
-      title: "Circle",
-      inputs: {
-        context: "renderContext",
-        circleSize: "number"
-      },
-      outputs: {
-        context: "renderContext"
-      },
-      onExecute() {
-        const renderContext = this.getInputData(0);
-        const circleSize = this.getInputData(1) || 1;
+          createNode("modV/modules/circle", {
+            title: "Circle",
+            inputs: {
+              context: "renderContext",
+              circleSize: "number"
+            },
+            outputs: {
+              context: "renderContext"
+            },
+            onExecute() {
+              const renderContext = this.getInputData(0);
+              const circleSize = this.getInputData(1) || 1;
 
-        if (
-          renderContext &&
-          this.outputs[0] &&
-          this.outputs[0].links &&
-          this.outputs[0].links.length
-        ) {
-          const { canvas, context, delta } = renderContext;
-          const { width, height } = canvas;
-          const newSize = circleSize * (2 + Math.sin(delta / 1000) * 1.1);
+              if (
+                renderContext &&
+                this.outputs[0] &&
+                this.outputs[0].links &&
+                this.outputs[0].links.length
+              ) {
+                const { canvas, context, delta } = renderContext;
+                const { width, height } = canvas;
+                const newSize = circleSize * (2 + Math.sin(delta / 1000) * 1.1);
 
-          context.strokeStyle = context.fillStyle = "rgba(0,0,0,0.001)";
-          context.fillRect(0, 0, width, height);
-          context.strokeStyle = context.fillStyle = `hsl(${delta /
-            40}, 80%, 50%)`;
-          context.beginPath();
-          context.arc(width / 2, height / 2, newSize, 0, Math.PI * 2);
-          // context.closePath();
-          context.stroke();
-        }
+                context.strokeStyle = context.fillStyle = "rgba(0,0,0,0.001)";
+                context.fillRect(0, 0, width, height);
+                context.strokeStyle = context.fillStyle = `hsl(${delta /
+                  40}, 80%, 50%)`;
+                context.beginPath();
+                context.arc(width / 2, height / 2, newSize, 0, Math.PI * 2);
+                // context.closePath();
+                context.stroke();
+              }
 
-        this.setOutputData(0, renderContext);
-      }
-    });
+              this.setOutputData(0, renderContext);
+            }
+          });
 
-    createNode("modV/modules/squishy", {
-      title: "Squishy",
-      inputs: {
-        context: "renderContext"
-      },
-      outputs: {
-        context: "renderContext"
-      },
-      onExecute() {
-        const renderContext = this.getInputData(0);
+          createNode("modV/modules/squishy", {
+            title: "Squishy",
+            inputs: {
+              context: "renderContext"
+            },
+            outputs: {
+              context: "renderContext"
+            },
+            onExecute() {
+              const renderContext = this.getInputData(0);
 
-        if (
-          renderContext &&
-          this.outputs[0] &&
-          this.outputs[0].links &&
-          this.outputs[0].links.length
-        ) {
-          const { canvas, context, delta } = renderContext;
-          const { width, height } = canvas;
-          context.drawImage(
-            canvas,
-            Math.cos(delta / 900) * 5 + Math.cos(delta / 100),
-            Math.sin(delta / 5000 + 5 * Math.sin(delta / 500)) * 10 -
-              Math.cos(delta / 500),
-            width + 20 * Math.sin(delta / 800),
-            height + 20 * Math.cos(delta / 600 + 2 * Math.sin(delta / 500))
-          );
-        }
+              if (
+                renderContext &&
+                this.outputs[0] &&
+                this.outputs[0].links &&
+                this.outputs[0].links.length
+              ) {
+                const { canvas, context, delta } = renderContext;
+                const { width, height } = canvas;
+                context.drawImage(
+                  canvas,
+                  Math.cos(delta / 900) * 5 + Math.cos(delta / 100),
+                  Math.sin(delta / 5000 + 5 * Math.sin(delta / 500)) * 10 -
+                    Math.cos(delta / 500),
+                  width + 20 * Math.sin(delta / 800),
+                  height + 20 * Math.cos(delta / 600 + 2 * Math.sin(delta / 500))
+                );
+              }
 
-        this.setOutputData(0, renderContext);
-      }
-    });
+              this.setOutputData(0, renderContext);
+            }
+          });
 
-    createNode("modV/modules/blockColor", {
-      title: "Block Colour",
-      inputs: {
-        context: "renderContext",
-        r: "number",
-        g: "number",
-        b: "number",
-        a: "number"
-      },
-      outputs: {
-        context: "renderContext"
-      },
-      onExecute() {
-        const renderContext = this.getInputData(0);
-        const r = this.getInputData(1);
-        const g = this.getInputData(2);
-        const b = this.getInputData(3);
-        const a = this.getInputData(4);
+          createNode("modV/modules/blockColor", {
+            title: "Block Colour",
+            inputs: {
+              context: "renderContext",
+              r: "number",
+              g: "number",
+              b: "number",
+              a: "number"
+            },
+            outputs: {
+              context: "renderContext"
+            },
+            onExecute() {
+              const renderContext = this.getInputData(0);
+              const r = this.getInputData(1);
+              const g = this.getInputData(2);
+              const b = this.getInputData(3);
+              const a = this.getInputData(4);
 
-        if (
-          renderContext &&
-          this.outputs[0] &&
-          this.outputs[0].links &&
-          this.outputs[0].links.length
-        ) {
-          const { canvas, context, delta } = renderContext;
-          const { width, height } = canvas;
-          context.fillStyle = `rgba(${r * 255},${g * 255},${b * 255},${a *
-            255})`;
-          context.fillRect(0, 0, width, height);
-        }
+              if (
+                renderContext &&
+                this.outputs[0] &&
+                this.outputs[0].links &&
+                this.outputs[0].links.length
+              ) {
+                const { canvas, context, delta } = renderContext;
+                const { width, height } = canvas;
+                context.fillStyle = `rgba(${r * 255},${g * 255},${b * 255},${a *
+                  255})`;
+                context.fillRect(0, 0, width, height);
+              }
 
-        this.setOutputData(0, renderContext);
-      }
-    });
-    */
+              this.setOutputData(0, renderContext);
+            }
+          });
+          */
       console.log("Finished OnMounted");
     });
-
     const resize = () => {
       const { devicePixelRatio: dpr } = window;
       if (canvas.value) {
@@ -345,23 +366,21 @@ export default defineComponent({
         canvas.value.style.height = `${window.innerHeight}px`;
       }
     };
-
     const play = () => {
       console.log("PLAY");
-      if (graph.status == litegraph.LGraph.STATUS_STOPPED) {
-        graph.start();
+      if (graph.value.status == litegraph.LGraph.STATUS_STOPPED) {
+        graph.value?.start();
       }
     };
-
     const stop = () => {
       console.log("STOP");
-      if (graph.status != litegraph.LGraph.STATUS_STOPPED) {
-        graph.stop();
+      if (graph.value.status != litegraph.LGraph.STATUS_STOPPED) {
+        graph.value?.stop();
       }
     };
-
-    return { canvas, context, outputContext, resize, play, stop };
+    return { canvas, context, outputContext, graph, resize, play, stop };
   },
+  components: { LiteGraphSerialiser },
 });
 </script>
 

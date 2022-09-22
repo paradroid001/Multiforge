@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 from app.dependencies import get_settings
-from app.api.routers import tools, forges, db, config
+from app.api.routers import tools, forges, db, config, graphs
 
 
 settings = get_settings()
@@ -23,5 +23,6 @@ app.add_middleware(
 
 app.include_router(forges.router)
 app.include_router(tools.router)
+app.include_router(graphs.router)
 app.include_router(db.router)
 app.include_router(config.router)
