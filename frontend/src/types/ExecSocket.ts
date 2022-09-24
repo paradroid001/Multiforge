@@ -76,15 +76,16 @@ export class ExecSocket
                     this.graphNode.log('initok');
                     const senddata:any = {};
                     senddata['messagetype'] = 'indata';
-                    senddata['data'] = this.toolDetails.toolArgs;
+                    senddata['data'] = this.toolDetails.argData;
                     this.send(senddata);
                     break;
                 }
             case 'outdata':
                 {
                     this.graphNode.log('recieved data ' + data['data']);
-                    this.finishCallback( JSON.stringify(data['data']) );
-                        //JSON.stringify({status: 'OK', output: data['data']}));
+                    //this.finishCallback( JSON.stringify(data['data']) );
+                    this.finishCallback( data['data'] );
+                    //JSON.stringify({status: 'OK', output: data['data']}));
                     break;
                 }
             case 'error':

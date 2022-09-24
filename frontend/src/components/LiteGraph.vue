@@ -78,6 +78,7 @@ export default defineComponent({
           createNodeEx(forge.name, {
             inputs: Object.fromEntries(tool_inputs),
             outputs: Object.fromEntries(tool_output),
+            arg_struct: tool.args,
             forge_id: forge.id,
             title: tool.name,
             url: `${backendURL_WS}/forges/run/${forge.id}/${tool.name}/`,
@@ -110,6 +111,23 @@ export default defineComponent({
               this.data = data;
               const obj = JSON.parse(this.data);
               this.setOutputData(obj);
+            }
+          },
+        });
+        createNode("Multiforge/B642Img", {
+          inputs: { string: "string" },
+          outputs: { image: "image" },
+          title: "Base64 2 Img",
+          desc: "Parses Base64 data into Image data",
+          onExecute() {
+            let data: string = this.getInputData(0);
+            if (data && data !== this.data) {
+              //console.log("b64 2 img got data: ");
+              //console.log(data);
+              this.data = data;
+              const img = new Image();
+              img.src = "data:image/png;base64," + this.data;
+              this.setOutputData(0, img);
             }
           },
         });

@@ -61,6 +61,7 @@ const createNodeEx = (path, params) => {
     this.dirty = true; //do we have new data?
     this.running = false; //are we currently running?
     this.url = params.url;
+    this.arg_struct = params.arg_struct;
     this.forge_id = params.forge_id;
     this.tool_name = params.title;
 
@@ -138,9 +139,12 @@ const createNodeEx = (path, params) => {
         thisObj.running = false;
         thisObj.onFinish(result);
       };
-      let argdata = {};
+      let argdata = [];
       for (let prop in this.inputs) {
-        argdata[this.inputs[prop].name] = this.getInputData(prop);
+        this.arg_struct[prop].value = this.getInputData(prop);
+        argdata.push(this.arg_struct[prop]);
+        //argdata[this.inputs[prop].name] = this.getInputData(prop);
+        //this.arg_struct[prop]
       }
       this.execsocket.setToolDetails(this.forge_id, this.tool_name, argdata);
       this.execsocket.setFinishCallback(executed);
@@ -154,7 +158,12 @@ const createNodeEx = (path, params) => {
       this.data = data;
       this.dirty = false;
       //this.running = false;
-      this.setOutputData(0, JSON.parse(data));
+      let output = JSON.parse(data);
+      //console.log("onFinish of Node was:");
+      //console.log(output["out"]);
+      //console.log("Setting output data with length " + output["out"].length);
+      this.setOutputData(0, output["out"]);
+      //TODO: You could do something with 'err' here.
     }
   };
 

@@ -71,8 +71,9 @@ class ToolRunSocket:
         self.tool_name = data['toolName']
         await self.send(messagetype=ToolRunSocket.MessageTypes.INITOK)
 
-    async def handle_run(self, input):
+    async def handle_run(self, tool_args):
         print(f"Handling run for {self.forge_id}, {self.tool_name}")
+        print(f"Input was: {tool_args}")
         forge = await Forge.get_by_id(PyObjectId(self.forge_id), get_settings())
         if forge:
             # print(forge.url)
@@ -81,7 +82,8 @@ class ToolRunSocket:
             # we have to run the tool on the node.
             response: AsyncResponse = AsyncResponse(
                 # url="http://127.0.0.1:8888/tool/run/Hello World Tool/")
-                url=self.tool_run_url)
+                url=self.tool_run_url,
+                post_data=tool_args)
             await response.request()
 
             await self.send(messagetype=ToolRunSocket.MessageTypes.OUTDATA,

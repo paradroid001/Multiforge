@@ -28,21 +28,23 @@ class AsyncResponse(BaseModel):
     status: int = 500
     data: Any = None
     url: str
+    post_data: Optional[Any] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # if 'status' in kwargs:
-        #    self.status = kwargs['status']
-        # if 'data' in kwargs:
-        #    self.data = kwargs['data']
-        if 'url' in kwargs:
-            self.url = kwargs['url']
-            # await self.request(self.url)
+        # if 'url' in kwargs:
+        #    self.url = kwargs['url']
+        # await self.request(self.url)
 
     async def request(self) -> 'AsyncResponse':
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.get(self.url)
+                response = None
+                if self.post_data is not None:
+                    print("posting")
+                    response = await client.post(self.url, json=self.post_data)
+                else:
+                    response = await client.get(self.url)
                 self.status = response.status_code  # https.AsyncClient format
                 self.data = response.json()
                 return self

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class ValueType(str, Enum):
     INT = "integer"
     FLOAT = "float"
+    NUMBER = "number"
     STRING = "string"
     BOOL = "bool"
 
@@ -29,7 +30,7 @@ class OutputValue(BaseModel):
 
 class ForgeTool(BaseModel):
     name: str
-    root: str  # root dir
+    root: Union[str | None]  # root dir
     command: str  # command to run
     args: List[Union[PositionalValue | FlaggedValue]]  # args
     output: Union[OutputValue | None]
