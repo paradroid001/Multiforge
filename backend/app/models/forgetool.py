@@ -13,13 +13,13 @@ class ValueType(str, Enum):
 
 class PositionalValue(BaseModel):
     name: str
-    value: Union[Any | None]
+    value: Union[Any, None]
     value_type: ValueType
 
 
 class FlaggedValue(PositionalValue):
     flag: str
-    value: Optional[Union[Any | None]]
+    value: Optional[Union[Any, None]]
     value_type: Optional[ValueType]
 
 
@@ -30,10 +30,10 @@ class OutputValue(BaseModel):
 
 class ForgeTool(BaseModel):
     name: str
-    root: Union[str | None]  # root dir
+    root: Union[str, None]  # root dir
     command: str  # command to run
-    args: List[Union[PositionalValue | FlaggedValue]]  # args
-    output: Union[OutputValue | None]
+    args: List[Union[PositionalValue, FlaggedValue]]  # args
+    output: Union[OutputValue, None]
     description: Optional[str]
 
     class Config:
