@@ -2,6 +2,35 @@ import { defineAsyncComponent } from "vue";
 import { createNode } from "../utils/liteGraphUtils";
 import * as litegraph from "litegraph.js";
 import * as jsdom from "jsdom";
+import { buffer } from "stream/consumers";
+import { JSONResponse } from "../types/JSONResponse";
+const { Image } = require('canvas');
+
+export function GetDataFromImage(element: typeof Image, mime_type: string): string
+{
+    const image = element;
+    const canvas = document.createElement('canvas');
+
+    // We use naturalWidth and naturalHeight to get the real image size vs the size at which the image is shown on the page
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    // We get the 2d drawing context and draw the image in the top left
+    canvas.getContext('2d')?.drawImage(image, 0, 0);
+
+    // Convert canvas to DataURL and log to console
+    const dataURL = canvas.toDataURL('png');
+    //console.log(dataURL);
+    //element.setAttribute('href', dataURL);
+    // Convert to Base64 string
+    //const base64 = getBase64StringFromDataURL(dataURL);
+    ////console.log(base64);
+    return dataURL;
+}
+
+export function GetDataFromCanvas(element: typeof Canvas, mime_type: string): string
+{
+    return "";
+}
 
 export const createMultiForgeNodes = (graph: litegraph.LGraph, 
   userAgent: string,
@@ -102,38 +131,22 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
             return;
         else 
         {
-          const element = document.createElement("a");
-          element.style.display = 'none';
-          element.setAttribute('download', this.properties.filename);
-          document.body.appendChild(element);
-          let url = "unknown";
-
-          let downloadData = null;
+          //const element = document.createElement("a");
+          //element.style.display = 'none';
+          //element.setAttribute('download', this.properties.filename);
+          //document.body.appendChild(element);
+          //let url = "unknown";
+          let outData = null;
           if (this.value.nodeName)
           {
             //console.log(this.value.nodeName);
             if (this.value.nodeName === 'IMG')
             {
-              const image = this.value;
-              const canvas = document.createElement('canvas');
-
-              // We use naturalWidth and naturalHeight to get the real image size vs the size at which the image is shown on the page
-              canvas.width = image.naturalWidth;
-              canvas.height = image.naturalHeight;
-              // We get the 2d drawing context and draw the image in the top left
-              canvas.getContext('2d')?.drawImage(image, 0, 0);
-
-              // Convert canvas to DataURL and log to console
-              const dataURL = canvas.toDataURL('png');
-              //console.log(dataURL);
-              element.setAttribute('href', dataURL);
-              // Convert to Base64 string
-              //const base64 = getBase64StringFromDataURL(dataURL);
-              ////console.log(base64);
+              outData = GetDataFromImage(this.value, this.properties['mimeType']);
             }
             else if (this.value.nodeName === 'CANVAS')
             {
-              console.log("It was a canvas!");
+              outData = GetDataFromCanvas(this.value, this.properties['mimeType']);
             }
             else
             {
@@ -143,14 +156,51 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
           else
           {
             console.log("Standard download");
-            downloadData = this.value;
-            const file = new Blob(downloadData);
-            url = URL.createObjectURL(file);
-            element.setAttribute('href', url);
+            const file = new Blob(this.value);
+            //Do I create a URL? or just set outData to this.value?
+            outData = URL.createObjectURL(file);
           }
-          
 
-          element.click();
+          const response: JSONResponse<boolean> = new JSONResponse<boolean>();
+          response.options = {
+            method: "POST",
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json;charset=utf-8", //use mime type?
+            },
+            body: outData
+          };
+          (async() => {
+            await response.load("http://127.0.0.1/asset/" + this.properties['fileName'] + "/");
+            if (response.status == 200) {
+              console.log("File Out result: " + response.data);
+            }
+            else
+            {
+              console.log("Error: File out response " + response.status);
+            }
+          })();
+          /* EXAMPLE OF POSTING DATA
+          const saveGraphName = async (
+            name: string,
+            content: string,
+            url: string
+          ): Promise<string[] | null> => {
+            const response: JSONResponse<string[]> = new JSONResponse<string[]>();
+            response.options = {
+              method: "POST",
+              headers: {
+                accept: "application/json",
+                "Content-Type": "application/json;charset=utf-8",
+              },
+              body: JSON.stringify({ name: name, content: content }),
+            };
+            await response.load(url);
+            if (response.status == 200) {
+              return Promise.resolve(response.data);
+            } else return Promise.resolve(null);
+          };
+          */
         }
       };
 
