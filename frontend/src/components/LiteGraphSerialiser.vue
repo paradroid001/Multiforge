@@ -1,6 +1,10 @@
 <template>
   <div class="litegraph litegraph-editor">
-    <input type="text" @input="onSaveNameChange($event)" v-model="text" />
+    <input
+      type="text"
+      @input="onSaveNameChange($event)"
+      v-model="saveSelected"
+    />
     <button @click="save()">
       <i class="mdi mdi-flask" aria-hidden="true"></i>
       Save
@@ -32,6 +36,7 @@ const backendurl = import.meta.env.VITE_BACKEND_URL;
 const filenames = ref<string[][]>([]);
 const saveName = ref<string>("");
 let selected: string = ""; //selected graph to load.
+let saveSelected: string;
 
 const loadGraphNames = async () => {
   //console.log("Loading graphnames");

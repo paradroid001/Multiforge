@@ -1,5 +1,9 @@
 from typing import List, Any, Optional, Union, Dict
 from enum import Enum
+import sys
+import os
+import subprocess
+import asyncio
 
 from fastapi import WebSocket
 from pydantic import BaseModel
@@ -79,3 +83,47 @@ async def request_list_from_url(url: str) -> AsyncListResponse:
             return AsyncListResponse()
         except Exception as error:
             return AsyncListResponse()
+
+
+def node_run_graph(graph_name: str):
+    loop = None
+    try:
+        #loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
+    except RuntimeError as ex:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    # no await
+    yield loop.run_until_complete(node_process_graph(graph_name))
+    loop.close()
+
+
+async def node_process_graph(graph_name: str):
+    try:
+        #js = "console.log('hello world');"
+        #cmd = ["cd", "../frontend/", ";", "node", "-e", f"{js}"]
+        cmd = ["./run_js.sh", graph_name]
+        # proc = subprocess.Popen(cmd, shell=True,
+        #                        stdin=subprocess.PIPE,
+        #                        stdout=subprocess.PIPE,
+        #                        stderr=subprocess.PIPE,
+        #                        bufsize=1)
+        process = await asyncio.create_subprocess_shell(" ".join(cmd),
+                                                        stdout=asyncio.subprocess.PIPE,
+                                                        stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await process.communicate()
+        print(stdout)
+        print(stderr)
+        return stdout + stderr
+        # out, err = await proc.communicate()
+        # return out, err
+    except subprocess.CalledProcessError as cpe:
+        try:
+            sys.stderr.write(cpe.output)
+        except TypeError as te:
+            sys.stderr.write(str(cpe.output))
+    except Exception as e:
+        sys.stderr.write(
+            "unable to run the node js with the node_run_js function.")
+        raise e

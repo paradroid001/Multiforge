@@ -1,5 +1,5 @@
 import * as litegraph from "litegraph.js";
-import { ExecSocket } from "@/types/ExecSocket";
+import { ExecSocket } from "../types/ExecSocket";
 
 const createNode = (type, params) => {
   const { inputs, outputs } = params;
@@ -19,6 +19,12 @@ const createNode = (type, params) => {
 
       this[key] = params[key];
     });
+
+    if (this.init) {
+      this.init();
+    } else {
+      console.log("there was not an init");
+    }
   }
 
   Object.keys(params).forEach((key) => {
@@ -81,6 +87,12 @@ const createNodeEx = (path, params) => {
 
     //this.addProperty("shellurl", "http://127.0.0.1:9998/aurlforashell");
     //this.addProperty("execurl", document.location.host + "/some exec url");
+    //Run init if it exists
+    if (this.init) {
+      this.init();
+    } else {
+      console.log("there was not an init");
+    }
   }
 
   Object.keys(params).forEach((key) => {

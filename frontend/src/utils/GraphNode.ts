@@ -1,5 +1,5 @@
 export interface GraphNode
 {
-    log: () => void;
+    log: (message:any) => void;
     isDebug: () => boolean;
 }

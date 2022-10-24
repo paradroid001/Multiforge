@@ -1,6 +1,11 @@
-//import websocket;
-import GraphNode from "./GraphNode";
-type GraphNode = typeof GraphNode
+//import * as websocket from 'websocket'
+//const WebSocket = websocket.w3cwebsocket;
+
+//import { WebSocket } from "WebSocket";
+//import * as WebSocket from "isomorphic-ws"; //browser WS, or 'ws' on node.
+import WebSocket from 'isomorphic-ws';
+import { GraphNode } from "../utils/GraphNode";
+//type GraphNode = typeof GraphNode
 
 export class ExecSocket
 {
@@ -33,7 +38,7 @@ export class ExecSocket
         }
         this.socket.onmessage = function(e)
         {
-            myself.onMessage(e.data);
+            myself.onMessage(e.data.toString());
         }
         this.socket.onopen = function(e)
         {
@@ -94,11 +99,11 @@ export class ExecSocket
         }
     }
 
-    onClosed(e)
+    onClosed(e: unknown)
     {
         this.graphNode.log("Exec socket closed " + e);
     }
-    onOpened(e)
+    onOpened(e: unknown)
     {
         this.graphNode.log("Exec socket opened " + e);
 
@@ -110,7 +115,7 @@ export class ExecSocket
         
         this.send(message);
     }
-    onError(e)
+    onError(e: unknown)
     {
         this.graphNode.log("Exec socket error: " + e);
     }
