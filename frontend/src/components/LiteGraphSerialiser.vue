@@ -30,6 +30,7 @@
 import { ref } from "vue";
 import * as litegraph from "litegraph.js";
 import { JSONResponse } from "../types/JSONResponse";
+import { createMultiForgeNodes } from "../utils/multiForgeTools";
 
 const props = defineProps<{ graph: litegraph.LGraph }>();
 const backendurl = import.meta.env.VITE_BACKEND_URL;
@@ -91,6 +92,16 @@ const load = async () => {
     //console.log(graphText);
     let graphobj = JSON.parse(graphText);
     if (graphobj && graphobj.length != 0) {
+      createMultiForgeNodes(
+        props.graph,
+        selected,
+        window.navigator.userAgent,
+        (out: object): object => {
+          console.log("Finish callback when we're run in the browser...");
+          console.log(out);
+          return out;
+        }
+      );
       props.graph.configure(graphobj);
     }
   } else {

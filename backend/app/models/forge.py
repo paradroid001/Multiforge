@@ -10,7 +10,7 @@ from app.models.forgetool import ForgeTool
 
 
 async def get_forge_collection(settings):
-    return await settings.get_collection('forges')
+    return settings.get_collection('forges')
 
 
 class Forge(BaseModel):
@@ -29,7 +29,7 @@ class Forge(BaseModel):
 
     @classmethod
     async def collection(cls, settings):
-        return await settings.get_collection('forges')
+        return settings.get_collection('forges')
 
     @classmethod
     async def get_by_id(cls, id, settings):

@@ -9,7 +9,7 @@ from app.util_classes import PyObjectId
 
 
 async def get_forgegraph_collection(settings):
-    return await settings.get_collection('forgegraphs')
+    return settings.get_collection('forgegraphs')
 
 
 class ForgeGraph(BaseModel):

@@ -68,7 +68,7 @@ class Settings(BaseSettings):
         dbnames = self.dbcache.db_client.list_database_names()
         return dbnames
 
-    async def get_collection(self, name: str):
+    def get_collection(self, name: str):
         if name not in self.dbcache.db_collections:
             #print('getting collection')
             self.dbcache.db_collections[name] = self.dbcache.db_obj[name]

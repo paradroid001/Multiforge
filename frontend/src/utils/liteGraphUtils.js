@@ -23,7 +23,7 @@ const createNode = (type, params) => {
     if (this.init) {
       this.init();
     } else {
-      console.log("there was not an init");
+      console.log(`there was not an init for ${params.title}`);
     }
   }
 
@@ -91,7 +91,7 @@ const createNodeEx = (path, params) => {
     if (this.init) {
       this.init();
     } else {
-      console.log("there was not an init");
+      console.log(`there was not an init for ${params.title}`);
     }
   }
 
@@ -115,12 +115,13 @@ const createNodeEx = (path, params) => {
   };
 
   node.prototype.log = function () {
-    if (this.isDebug()) {
-      console.log(...arguments);
-    }
+    //if (this.isDebug()) {
+    console.log(...arguments);
+    //}
   };
 
   node.prototype.onExecute = function () {
+    console.log(`${this.title} is executing`);
     //Only run if something in the input changes
     //OR if there are no inputs.
     for (let name in this.inputcache) {

@@ -101,7 +101,7 @@ export default defineComponent({
         lGraphCanvas.resize();
         resize();
         //this.graph.start(); //this will be done by a button
-        createMultiForgeNodes(graph.value, window.navigator.userAgent);
+        //createMultiForgeNodes(graph.value, window.navigator.userAgent);
       }
 
       //console.log("Finished OnMounted");

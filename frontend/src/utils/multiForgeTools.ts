@@ -4,39 +4,89 @@ import * as litegraph from "litegraph.js";
 import * as jsdom from "jsdom";
 import { buffer } from "stream/consumers";
 import { JSONResponse } from "../types/JSONResponse";
-const { Image } = require('canvas');
+import { Readable } from "stream";
 
-export function GetDataFromImage(element: typeof Image, mime_type: string): string
-{
+
+//const { Image, Canvas } = require('canvas');
+//import * as _canvas from "canvas";
+import { Canvas, CanvasRenderingContext2D, createCanvas, NodeCanvasRenderingContext2DSettings} from "canvas";
+import { read } from "fs";
+
+export const GetDataFromImage = async(element: HTMLImageElement, mime_type: string): Promise<Blob> => {
     const image = element;
+    
+    //For Node JS (doesn't work with drawImage?)
+    //const canvas = createCanvas(100, 100);
+    //For Browser
     const canvas = document.createElement('canvas');
+    
+    
+    console.log(`${image.width}, ${image.height}`);
 
     // We use naturalWidth and naturalHeight to get the real image size vs the size at which the image is shown on the page
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
+    canvas.width = 100; //image.naturalWidth;
+    canvas.height = 100; //image.naturalHeight;
+    //console.log(`${canvas.width}, ${canvas.height}`);
     // We get the 2d drawing context and draw the image in the top left
-    canvas.getContext('2d')?.drawImage(image, 0, 0);
-
+    const context = canvas.getContext('2d');
+    if (context != null)
+    {
+      context.drawImage(image, 0, 0);
+    }
+    else
+    {
+      console.log("THE CONTEXT WAS NULL!");
+    }
     // Convert canvas to DataURL and log to console
-    const dataURL = canvas.toDataURL('png');
-    //console.log(dataURL);
-    //element.setAttribute('href', dataURL);
-    // Convert to Base64 string
-    //const base64 = getBase64StringFromDataURL(dataURL);
-    ////console.log(base64);
-    return dataURL;
+    //const dataURL = canvas.toDataURL('png');
+      //console.log(dataURL);
+      //element.setAttribute('href', dataURL);
+      // Convert to Base64 string
+      //const base64 = getBase64StringFromDataURL(dataURL);
+      ////console.log(base64);
+      //console.log(dataURL);
+      //return dataURL;
+    /*
+    function canvasToBlob(ctx: CanvasRenderingContext2D | null, type:string) {
+        return new Promise<Blob>(function (resolve, reject) {
+                  ctx?.canvas.toBlob(function (blob: Blob | null) {
+                                        if (blob === null)
+                                          reject(blob);
+                                        else
+                                          resolve(blob);
+                                     }, type);
+               });
+     }
+    const blob = await canvasToBlob(canvas.getContext('2d') as CanvasRenderingContext2D, "image/png");
+    */
+    
+    const blobdata = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    //const blob : Blob = blobdata as Blob;
+    //console.log("returning blob: " + blob.type);
+    
+    //For NodeJS (browser canvas doesn't have this?)
+    //const buffer = canvas.toBuffer('image/png');
+    //blob = new Blob([buffer]);
+    const dataurl = canvas.toDataURL('image/png');
+    const res = await fetch(dataurl);
+    const blob:Blob = await res.blob();
+
+    return blob;
 }
 
-export function GetDataFromCanvas(element: typeof Canvas, mime_type: string): string
+
+export function GetDataFromCanvas(element: Canvas, mime_type: string): string
 {
     return "";
 }
 
-export const createMultiForgeNodes = (graph: litegraph.LGraph, 
+export const createMultiForgeNodes = (
+  graph: litegraph.LGraph,
+  assetID: string,
   userAgent: string,
   nodejsFinishCallback: (out: object) => object) => {
     //console.log(userAgent);
-
+    
     createNode("Multiforge/ParseJSON", {
         inputs: { json: "string" },
         outputs: { obj: "object" },
@@ -51,23 +101,68 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
           }
         },
       });
-      createNode("Multiforge/B642Img", {
+      
+      const b642Img = createNode("Multiforge/B642Img", {
         inputs: { string: "string" },
         outputs: { image: "image" },
         title: "Base64 2 Img",
         desc: "Parses Base64 data into Image data",
+        properties: { width: 256, height: 256, x: 0, y: 0, scale: 1.0 },
+        size: [80, 80],
         onExecute() {
           const data: string = this.getInputData(0);
           if (data && data !== this.data) {
             ////console.log("b64 2 img got data: ");
             ////console.log(data);
             this.data = data;
-            const img = new Image();
-            img.src = "data:image/png;base64," + this.data;
-            this.setOutputData(0, img);
+            this.img = document.createElement('img');//new Image();
+            this.img.src = "data:image/png;base64," + this.data;
+            //document.body.appendChild(img);
+            //this.canvas.getContext('2d')?.drawImage(this.img, 0, 0);
+            console.log("Image created");
+            this.img.onload = () =>{
+              console.log(`DIMENSIONS: ${this.img.naturalWidth}, ${this.img.naturalHeight}`);
+              this.setOutputData(0, this.img);
+            };
           }
-        },
+        }
       });
+      
+      b642Img.prototype.createCanvas = function() {
+          this.canvas = document.createElement("canvas");
+          this.canvas.width = this.properties["width"];
+          this.canvas.height = this.properties["height"];
+      };
+      b642Img.prototype.onAdded = function(){
+        console.log("ONADDED");
+        //this.createCanvas();
+        this.img = null;
+      };
+      b642Img.prototype.onDrawBackground = function(ctx: CanvasRenderingContext2D){
+          if (ctx == null)
+          {
+            return;
+          }
+          if (this.flags.collapsed) {
+            return;
+          }
+          if (this.img){ //this.canvas) {
+              /*
+              ctx.drawImage(
+                  this.canvas,
+                  0,
+                  0,
+                  this.canvas.width,
+                  this.canvas.height,
+                  0,
+                  0,
+                  this.size[0],
+                  this.size[1]
+              );
+              */
+             ctx.drawImage(this.img, 0, 0);
+          }
+      };
       createNode("Multiforge/TextDisplay", {
         inputs: { text: "string" },
         outputs: { text: "string" },
@@ -99,25 +194,37 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
 
         onStart() {
           this.value = null;
+          this.outData = null; //this is the data that will be sent for writing.
         },
         onExecute() {
+          //console.log("In downloadfile OnExecute");
           if (this.inputs[0])
           {
               //if the value changed..
               if (this.value != this.getInputData(0))
               {
-                this.value = this.getInputData(0);
                 ////console.log("Checking user agent");
                 ////console.log(window.navigator.userAgent);
                 //If we are running in node, trigger the download
                 //console.log("I am in the execute of the download node.")
                 //console.log("The user agent is " + userAgent);
-                if (userAgent == 'nodejs')
-                {
-                  //console.log("Its a booga, that's what it is maaaannnn");
-                  //this.downloadFile();
-                  nodejsFinishCallback(this.value);
-                }
+                
+                console.log(`The node value changed: ${this.value}, ${this.getInputData(0)}`);
+                this.value = this.getInputData(0);
+                const el = this.value as HTMLImageElement;
+                console.log(el.naturalHeight);
+                console.log(el.naturalWidth);
+                console.log(el.src);
+                (async() => {
+                  await this.writeFile();
+                  if (userAgent == 'nodejs')
+                  {
+                    //console.log("Its a booga, that's what it is maaaannnn");
+                    //this.downloadFile();
+                    nodejsFinishCallback(this.value);
+                  }
+                })();
+                
               }
           }
         }
@@ -126,7 +233,72 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
         //console.log("Combo changed: " + value);
         this.properties['mimeType']=value;
       };
-      fileoutput_node.prototype.writeFile = function(){
+      fileoutput_node.prototype.writeFile = async function() {
+        if (!this.value)
+        {
+          return;
+        }
+        else {
+          let outData : Blob;// = new Blob(["This is a test"]);
+          
+          if (this.value.nodeName === 'IMG')
+          {
+            console.log("FROM IMG");
+            outData = await GetDataFromImage(this.value, this.properties['mimeType']) as Blob;
+          }
+          else{
+            console.log("FROM WHATEVER");
+            outData = new Blob([`Fallback data. Maybe use value? ${this.value}`], {type:"text/json"});
+          }
+
+          const response: JSONResponse<boolean> = new JSONResponse<boolean>();
+          //const FormData = new FormData();
+          console.log(outData.size);
+          const formData = new FormData();
+          //const testData = new Blob(outData, {type:"image/png"});
+          
+          //const blobData : BlobPart[] = [await outData.arrayBuffer()];
+          //const mtype = "text/plain"; //${this.properties['mimeType']
+          //console.log(outData);
+          //const readstream = Readable.from(outData.stream());
+          //const ab: ArrayBuffer = await outData.arrayBuffer();
+          //const image: File = new File([outData], 'perlin.png', { type: 'image/png' });
+          formData.append("file_data", outData, this.properties['fileName']);
+          //formData.append("file_data", outData, "perlin.png");//this.properties['fileName']);
+          
+          
+          //const boundary = '----WebKitFormBoundaryIn312MOjBWdkffIM';
+          //const disposition = `Content-Disposition: form-data; name="file_data"; filename="file.png"\n`;
+          //const contentType = `Content-Type: ${this.properties['mimeType']}\n\n`;
+          //const contentType = `Content-Type: ${mtype}\n\n`;
+          //const parts = [boundary, '\n', disposition, contentType, outData, '\n', boundary, '--\n'];
+          //const bodyBlob = new Blob(parts, {type: "image:png"});
+          response.options = {
+            method: "POST",
+            //No headers for file data
+            
+            headers: {
+              //accept: "application/json",
+              //"Content-Type": "application/json;charset=utf-8", //use mime type?
+              //"Content-Type": `multipart/form-data; boundary=${boundary}`
+            },
+            body: formData
+            
+            //`${boundary}\n${disposition}\nContent-Type: ${this.properties['mimeType']}\n${outData}${boundary}`
+          };
+          
+          await response.load("http://127.0.0.1:8000/api/graphs/" + assetID + "/asset/?mime_type=image/png");
+          //  + this.properties['fileName'] + "/");
+          if (response.status == 200) {
+            console.log("File Out result: " + response.data);
+          }
+          else
+          {
+            console.log("Error: File out response " + response.status + response.data);
+          }
+        }
+      };
+      fileoutput_node.prototype.writefile2 = function(){
         if (!this.value)
             return;
         else 
@@ -137,11 +309,19 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
           //document.body.appendChild(element);
           //let url = "unknown";
           let outData = null;
+          console.log("In writefile");
+          console.log(this.value);
+          console.log(this.value.nodeName);
           if (this.value.nodeName)
           {
             //console.log(this.value.nodeName);
             if (this.value.nodeName === 'IMG')
             {
+              this.value = this.value as HTMLImageElement;
+              console.log(`${this.value.width}, ${this.value.height}`);
+              console.log(`${this.value.namespaceURI}`);
+              console.log(`${this.value.naturalWidth}`);
+              console.log(`${this.value['naturalWidth']}`);
               outData = GetDataFromImage(this.value, this.properties['mimeType']);
             }
             else if (this.value.nodeName === 'CANVAS')
@@ -162,16 +342,21 @@ export const createMultiForgeNodes = (graph: litegraph.LGraph,
           }
 
           const response: JSONResponse<boolean> = new JSONResponse<boolean>();
+          //const FormData = new FormData();
           response.options = {
             method: "POST",
+            //No headers for file data
+            
             headers: {
-              accept: "application/json",
-              "Content-Type": "application/json;charset=utf-8", //use mime type?
+              //accept: "application/json",
+              //"Content-Type": "application/json;charset=utf-8", //use mime type?
+              "Content-Type": 'multipart/form-data; boundary=----WebKitFormBoundaryIn312MOjBWdkffIM'
             },
-            body: outData
+            body: outData as BodyInit
           };
           (async() => {
-            await response.load("http://127.0.0.1/asset/" + this.properties['fileName'] + "/");
+            await response.load("http://127.0.0.1:8000/api/graphs/" + assetID + "/asset/?mime_type=image/png");
+            //  + this.properties['fileName'] + "/");
             if (response.status == 200) {
               console.log("File Out result: " + response.data);
             }

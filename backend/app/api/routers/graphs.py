@@ -1,7 +1,8 @@
+import os
 from typing import List
 import json
 
-from fastapi import APIRouter, Depends, Request, HTTPException, Response, WebSocket
+from fastapi import APIRouter, Depends, Request, HTTPException, Response, WebSocket, File, UploadFile
 from fastapi.responses import StreamingResponse
 from starlette import status
 
@@ -9,6 +10,7 @@ from app.util_classes import PyObjectId, node_run_graph
 from app.dependencies import get_settings
 from app.settings import Settings
 from app.models.forgegraph import ForgeGraph
+from app.models.asset import Asset
 
 router = APIRouter(
     prefix="/api/graphs",
@@ -38,6 +40,35 @@ async def list_graphnames(settings=Depends(get_settings)) -> List[List[str]]:
 async def get_graph_content_by_id(graph_id: PyObjectId, settings=Depends(get_settings)) -> str:
     forgegraph = await ForgeGraph.get_by_id(graph_id, settings)
     return forgegraph.content
+
+
+@router.post("/{graph_id}/asset/")
+async def create_asset(graph_id: PyObjectId,
+                       file_data: UploadFile = File(...),
+                       mime_type: str = "text/plain",
+                       settings=Depends(get_settings)) -> int:
+    '''save file data, return a filesize in bytes'''
+
+    try:
+        file_name = file_data.filename
+        if file_name is None:
+            file_name = "uploadedfile"
+        asset = Asset(forge_graph_id=graph_id,
+                      file_name=file_name,
+                      mime_type=mime_type)
+        local_file_path = asset.get_file_name()
+        os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+        with open(local_file_path, "wb+") as saved_file:
+            content = await file_data.read()
+            saved_file.write(content)
+        asset.file_size = os.path.getsize(local_file_path)
+        asset.save(settings)
+    except OSError as error:
+        # raise from to maintain 'cause' exception chain: PEP-3134
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error writing source file locally."
+        ) from error
+    return asset.file_size
 
 
 @router.get("/by_name/{graph_name}/")
