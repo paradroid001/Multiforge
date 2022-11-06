@@ -41,6 +41,15 @@ class ForgeGraph(BaseModel):
         return graph
 
     @classmethod
+    async def get_by_name(cls, name: str, settings: Settings):
+        graph = None
+        coll = await ForgeGraph.collection(settings)
+        graph_dict = coll.find_one({'name': name})
+        if graph_dict:
+            graph = ForgeGraph(**graph_dict)
+        return graph
+
+    @classmethod
     async def collection(cls, settings):
         return await get_forgegraph_collection(settings)
 

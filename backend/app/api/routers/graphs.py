@@ -71,29 +71,55 @@ async def create_asset(graph_id: PyObjectId,
     return asset.file_size
 
 
-@router.get("/by_name/{graph_name}/")
-async def get_graph_content_by_name(graph_name: str, settings=Depends(get_settings)) -> str:
-    graph_collection = await ForgeGraph.collection(settings)
-    graphs_filter = {'name': graph_name}
-    graphs = list(graph_collection.find(graphs_filter))
-    graph = None
-    if len(graphs) == 0:
-        raise HTTPException(status.HTTP_404_NOT_FOUND)
+@router.get("/{graph_id}/asset/")
+async def get_asset(graph_id: PyObjectId, settings: Settings = Depends(get_settings)) -> StreamingResponse:
+
+    def iterfile(filepath):
+        with open(filepath, mode="rb") as file_data:
+            yield from file_data
+
+    asset = await Asset.get_by_graph_id(graph_id, settings)
+    print(asset)
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    elif not os.path.exists(asset.get_file_name()):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
     else:
-        graph = ForgeGraph(**graphs[0])
-        if len(graphs) > 1:
-            print("Multiple graphs returned for this name, returning first one")
+        return StreamingResponse(iterfile(asset.get_file_name()), media_type=asset.mime_type)
+
+
+@router.get("/{graph_id}/asset/meta/")
+async def get_asset_meta(graph_id: PyObjectId, settings: Settings = Depends(get_settings)):
+    asset = await Asset.get_by_graph_id(graph_id, settings)
+    print(asset)
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        return {'name': asset.file_name, 'size': asset.file_size, 'type': asset.mime_type}
+
+
+@ router.get("/by_name/{graph_name}/")
+async def get_graph_content_by_name(graph_name: str, settings=Depends(get_settings)) -> str:
+    graph = ForgeGraph.get_by_name(name, settings)
+    if graph is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return graph
 
 
-@router.post("/save/{name}/")
+@ router.post("/save/{name}/")
 async def save_graphname(name: str, graph: ForgeGraph, settings=Depends(get_settings)) -> List[str]:
-    # TODO what if the graph name already exists?
-    await graph.save(settings)
-    return [str(graph.id), graph.name]
+    current_graph: ForgeGraph = await ForgeGraph.get_by_name(name, settings)
+    if current_graph is None:
+        current_graph = graph  # the incoming one
+    else:
+        current_graph.content = graph.content
+    await current_graph.save(settings)
+
+    return [str(current_graph.id), current_graph.name]
 
 
-@router.get("/run/{name}/")
+@ router.get("/run/{name}/")
 async def run_graph_by_name(name: str, settings=Depends(get_settings)) -> StreamingResponse:
 
     return StreamingResponse(node_run_graph(name))

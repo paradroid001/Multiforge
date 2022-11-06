@@ -33,6 +33,17 @@ class Asset(BaseModel):
             datetime: datetime.isoformat
         }
 
+    @classmethod
+    async def get_by_graph_id(cls, graph_id: PyObjectId, settings: Settings) -> 'Asset':
+        asset = None
+        coll = get_asset_collection(settings)
+        asset_dicts = coll.find({'forge_graph_id': graph_id})
+        assets = [Asset(**asset_dict, by_alias=True)
+                  for asset_dict in asset_dicts]
+        if len(assets) > 0:
+            asset = assets[-1]
+        return asset
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.file_size = 0
@@ -43,7 +54,6 @@ class Asset(BaseModel):
 
     def save(self, settings: Settings):
         asset_collection = get_asset_collection(settings)
-
         asset_collection.update_one(
             {'_id': self.id}, {'$set': self.prepare_save()}, upsert=True)
 
