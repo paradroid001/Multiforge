@@ -95,13 +95,13 @@ interface GraphData
 //Get Forges
 const { loadForges } = getForges();
 const error: string | null = null;
-const backendURL = "http://127.0.0.1:8000/api";
-const backendURL_WS = "ws://127.0.0.1:8000/api";
 const maxRunTime = 40;
 let forgeArray: Forge[] = [];
 const forgeTools: ForgeTool[] = [];
 const graph = new litegraph.LGraph();
 const graphName:string = process.argv[2]; //node bin is 0, this script is 1...
+const backendURL:string = (process.argv[3] || "http://127.0.0.1:8000/api");
+const backendURL_WS:string = (process.argv[4] || "ws://127.0.0.1:8000/api");
 
 //A callback to end the graph
 const nodejs_finish = function(out: object): object {
@@ -120,7 +120,7 @@ const nodejs_finish = function(out: object): object {
   if (data != null)
   {
     //Create the static nodes for multiforge
-    createMultiForgeNodes(graph, data?._id, useragent, nodejs_finish);
+    createMultiForgeNodes(backendURL, graph, data?._id, useragent, nodejs_finish);
 
     //Collect the forges array
     const f: JSONResponse<Forge[]> = await loadForges(backendURL+"/forges");

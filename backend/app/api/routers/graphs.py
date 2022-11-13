@@ -53,9 +53,15 @@ async def create_asset(graph_id: PyObjectId,
         file_name = file_data.filename
         if file_name is None:
             file_name = "uploadedfile"
-        asset = Asset(forge_graph_id=graph_id,
-                      file_name=file_name,
-                      mime_type=mime_type)
+        asset = await Asset.get_by_graph_id(graph_id, settings)
+        if asset is None:
+            asset = Asset(forge_graph_id=graph_id,
+                          file_name=file_name,
+                          mime_type=mime_type)
+        else:
+            asset.file_name = file_name
+            asset.mime_type = mime_type
+
         local_file_path = asset.get_file_name()
         os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
         with open(local_file_path, "wb+") as saved_file:

@@ -49,17 +49,16 @@ export default defineComponent({
     let lGraphCanvas: litegraph.LGraphCanvas; // = null;
     const forgeTools = ref<ForgeTool[]>([]);
     const backendURL_WS: string = import.meta.env.VITE_BACKEND_URL_WS;
+    const backendURL: string = import.meta.env.VITE_BACKEND_URL;
+
     watch(forgeTools, async (newForgeTools, oldForgeTools) => {
       //Not sure what I wanted to do here?
       console.log("New");
     });
+
     (async () => {
-      //console.log(props.forgesArray);
-      //console.log("Listing forges");
       props.forgesArray.forEach(async (forge: Forge) => {
         let ret: JSONResponse<ForgeTool[]> = await forge.getDetails();
-        //console.log("I am a forge: " + forge.name);
-        //console.log(`I have tools:`);
         ret?.data?.forEach((tool: ForgeTool) => {
           forgeTools.value.push(tool);
           let tool_inputs: Map<string, string> = new Map<string, string>();
@@ -70,12 +69,11 @@ export default defineComponent({
               index: number,
               array: (PositionalValue | FlaggedValue)[]
             ) => {
-              //console.log(array[index]);
-              //console.log(value);
               tool_inputs.set(value.name, value.value_type);
             }
           );
           tool_output.set(tool.output.name, tool.output.value_type);
+
           createNodeEx(forge.name, {
             inputs: Object.fromEntries(tool_inputs),
             outputs: Object.fromEntries(tool_output),
@@ -100,8 +98,18 @@ export default defineComponent({
         lGraphCanvas = new litegraph.LGraphCanvas(canvas.value, graph.value);
         lGraphCanvas.resize();
         resize();
-        //this.graph.start(); //this will be done by a button
-        //createMultiForgeNodes(graph.value, window.navigator.userAgent);
+
+        //Create the 'static' multiforge nodes
+        createMultiForgeNodes(
+          backendURL,
+          graph.value,
+          "asset_ID_goes_here",
+          window.navigator.userAgent,
+          (): object => {
+            console.log("Done");
+            return {};
+          }
+        );
       }
 
       //console.log("Finished OnMounted");

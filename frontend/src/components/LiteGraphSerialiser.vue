@@ -90,9 +90,14 @@ const load = async () => {
   if (graphText) {
     //console.log("Load graph: ");
     //console.log(graphText);
+    //TODO: Consider only having one function that does this.
+    // The static nodes are also created in the main page.
+    // They are getting recreated here because now we know
+    // the asset id.
     let graphobj = JSON.parse(graphText);
     if (graphobj && graphobj.length != 0) {
       createMultiForgeNodes(
+        backendurl,
         props.graph,
         selected,
         window.navigator.userAgent,

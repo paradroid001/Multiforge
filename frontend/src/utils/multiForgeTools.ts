@@ -9,11 +9,11 @@ import { read } from "fs";
 
 export const GetDataFromImage = async(element: HTMLImageElement, mime_type: string): Promise<Blob> => {
     const image = element;
+    image.crossOrigin = "anonymous"; //attempt to allow cross origin content, but useless after it's been loaded.
     const canvas = document.createElement('canvas');
     // We use naturalWidth and naturalHeight to get the real image size vs the size at which the image is shown on the page
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
-    //console.log(`${canvas.width}, ${canvas.height}`);
     // We get the 2d drawing context and draw the image in the top left
     const context = canvas.getContext('2d');
     if (context != null)
@@ -48,12 +48,14 @@ export function GetDataFromCanvas(element: Canvas, mime_type: string): string
 }
 
 export const createMultiForgeNodes = (
+  backendURL: string,
   graph: litegraph.LGraph,
   assetID: string,
   userAgent: string,
   nodejsFinishCallback: (out: object) => object) => {
-    //console.log(userAgent);
-    
+    console.log(userAgent);
+    console.log(backendURL);
+
     createNode("Multiforge/ParseJSON", {
         inputs: { json: "string" },
         outputs: { obj: "object" },
@@ -91,6 +93,27 @@ export const createMultiForgeNodes = (
               console.log(`DIMENSIONS: ${this.img.naturalWidth}, ${this.img.naturalHeight}`);
               this.setOutputData(0, this.img);
             };
+          }
+        }
+      });
+
+      const Img2b64 = createNode("Multiforge/Img2B64", {
+        inputs: { image: "image"},
+        outputs: {encoded: "string"},
+        title: "Img 2 Base64",
+        desc: "Turns image into Base64 encoded string",
+        properties: { width: 256, height: 256, x: 0, y: 0, scale: 1.0 },
+        size: [80, 80],
+        onExecute() {
+          const data: HTMLImageElement = this.getInputData[0];
+          if (data && data != this.data) {
+            this.data = data;
+            (async() => {
+              const base64Image = await FileSystem.readAsStringAsync(imageUri, {
+                encoding: FileSystem.EncodingType.Base64,
+              })
+            })();
+            
           }
         }
       });
@@ -178,10 +201,6 @@ export const createMultiForgeNodes = (
                 
                 console.log(`The node value changed: ${this.value}, ${this.getInputData(0)}`);
                 this.value = this.getInputData(0);
-                const el = this.value as HTMLImageElement;
-                console.log(el.naturalHeight);
-                console.log(el.naturalWidth);
-                console.log(el.src);
                 (async() => {
                   await this.writeFile();
                   if (userAgent == 'nodejs')
@@ -214,8 +233,8 @@ export const createMultiForgeNodes = (
             outData = await GetDataFromImage(this.value, this.properties['mimeType']) as Blob;
           }
           else{
-            console.log("FROM WHATEVER");
-            outData = new Blob([`Fallback data. Maybe use value? ${this.value}`], {type:"text/json"});
+            console.log("From (not image or canvas)");
+            outData = new Blob([`${this.value}`], {type:"text/json"});
           }
 
           const response: JSONResponse<boolean> = new JSONResponse<boolean>();
@@ -226,8 +245,8 @@ export const createMultiForgeNodes = (
             headers: {},
             body: formData
           };
-          
-          await response.load("http://127.0.0.1:8000/api/graphs/" + assetID + "/asset/?mime_type=image/png");
+          console.log(backendURL);
+          await response.load(backendURL+ "/graphs/" + assetID + "/asset/?mime_type=" + this.properties['mimeType']);
           if (response.status == 200) {
             console.log("File Out result: " + response.data);
           }
