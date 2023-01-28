@@ -15,6 +15,7 @@
 </template>
 
 <script lang="ts">
+console.log("Starting imports for LiteGraph.vue");
 import { Forge } from "../types/Forge";
 import {
   ForgeTool,
@@ -23,14 +24,24 @@ import {
   OutputValue,
 } from "../types/ForgeTool";
 import { JSONResponse } from "../types/JSONResponse";
-import { createNode, createNodeEx } from "../utils/liteGraphUtils";
-import { createMultiForgeNodes } from "../utils/multiForgeTools";
 import { defineComponent, onMounted, PropType, ref, watch } from "vue";
+console.log("Importing GLMAtrix");
+
+import * as glMatrix from "gl-matrix-ts";
+//import { vec3, vec4, mat3, mat4, quat } from "gl-matrix-ts";
+globalThis.glMatrix = glMatrix;
+//window.glMatrix = glMatrix;
+//global.glMatrix = glMatrix;
+
+console.log("Importing litegraph ok");
 import * as litegraph from "litegraph.js";
+
 import uuid4 from "uuid";
 import "litegraph.js/css/litegraph.css";
 import { createExecNode, ExecNode } from "../utils/execNode";
 import LiteGraphSerialiser from "./LiteGraphSerialiser.vue";
+import { createNode, createNodeEx } from "../utils/liteGraphUtils";
+import { createMultiForgeNodes } from "../utils/multiForgeTools";
 
 export default defineComponent({
   name: "LiteGraph",

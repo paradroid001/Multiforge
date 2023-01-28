@@ -105,7 +105,7 @@ async def get_asset_meta(graph_id: PyObjectId, settings: Settings = Depends(get_
         return {'name': asset.file_name, 'size': asset.file_size, 'type': asset.mime_type}
 
 
-@ router.get("/by_name/{graph_name}/")
+@router.get("/by_name/{graph_name}/")
 async def get_graph_content_by_name(graph_name: str, settings=Depends(get_settings)) -> str:
     graph = ForgeGraph.get_by_name(name, settings)
     if graph is None:
@@ -113,7 +113,7 @@ async def get_graph_content_by_name(graph_name: str, settings=Depends(get_settin
     return graph
 
 
-@ router.post("/save/{name}/")
+@router.post("/save/{name}/")
 async def save_graphname(name: str, graph: ForgeGraph, settings=Depends(get_settings)) -> List[str]:
     current_graph: ForgeGraph = await ForgeGraph.get_by_name(name, settings)
     if current_graph is None:
@@ -125,7 +125,7 @@ async def save_graphname(name: str, graph: ForgeGraph, settings=Depends(get_sett
     return [str(current_graph.id), current_graph.name]
 
 
-@ router.get("/run/{name}/")
+@router.get("/run/{name}/")
 async def run_graph_by_name(name: str, settings=Depends(get_settings)) -> StreamingResponse:
 
     return StreamingResponse(node_run_graph(name))

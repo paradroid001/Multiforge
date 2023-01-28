@@ -12,6 +12,7 @@
   "dependencies": {
     "@mdi/font": "^6.6.96",
     "canvas": "^2.10.1",
+    "gl-matrix-ts": "^2.3.3",
     "isomorphic-ws": "^5.0.0",
     "jsdom": "^20.0.0",
     "litegraph.js": "^0.7.10",

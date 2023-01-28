@@ -1,3 +1,7 @@
+console.log("litegraph utils importing glmatrix");
+import * as glMatrix from "gl-matrix-ts";
+window.glMatrix = glMatrix;
+console.log("litegraph utils import litegraph");
 import * as litegraph from "litegraph.js";
 import { ExecSocket } from "../types/ExecSocket";
 

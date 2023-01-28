@@ -18,6 +18,9 @@ const useragent = dom.window.navigator.userAgent;
 //window.Image = Image;
 
 global.document = dom.window.document;
+console.log("rungraph importing glmatrix");
+import * as glMatrix from "gl-matrix";
+console.log("rungraph importing litegraph");
 import * as litegraph from "litegraph.js";
 import WebSocket from 'ws';
 import { ExecSocket } from "../types/ExecSocket";

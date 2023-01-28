@@ -1,6 +1,14 @@
 import { defineAsyncComponent } from "vue";
-import { createNode } from "../utils/liteGraphUtils";
+import * as glMatrix from "gl-matrix-ts";
+//import { vec3, vec4, mat3, mat4, quat } from "gl-matrix-ts";
+globalThis.glMatrix = glMatrix;
+//window.glMatrix = glMatrix;
+//global.glMatrix = glMatrix;
+
+console.log("Mutiforgetools importing litegraph");
 import * as litegraph from "litegraph.js";
+import { createNode } from "../utils/liteGraphUtils";
+
 import * as jsdom from "jsdom";
 import { buffer } from "stream/consumers";
 import { JSONResponse } from "../types/JSONResponse";

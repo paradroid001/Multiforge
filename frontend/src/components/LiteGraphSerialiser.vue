@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+console.log("Importing litegraph serialiser");
 import { ref } from "vue";
 import * as litegraph from "litegraph.js";
 import { JSONResponse } from "../types/JSONResponse";

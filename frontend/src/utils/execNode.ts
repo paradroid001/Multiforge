@@ -3,7 +3,10 @@ import {ExecSocket} from '@/types/ExecSocket';
 //import { createNode, createNodeEx } from '@/utils/liteGraphUtils';
 import { Forge } from '@/types/Forge';
 import { ForgeTool } from '@/types/ForgeTool';
+
+console.log("execnode importing litegrapgh");
 import { LGraphNode, LiteGraph} from "litegraph.js";
+
 //import createNode from "litegraph.js";
 
 
