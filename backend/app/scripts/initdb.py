@@ -3,7 +3,8 @@ import argparse
 import pymongo
 
 
-parser = argparse.ArgumentParser(description='Setup MongoDB collection for records with indices')
+parser = argparse.ArgumentParser(
+    description='Setup MongoDB collection for records with indices')
 
 parser.add_argument('-mh', '--mongo_host', dest='mongo_host', action='store', default='localhost',
                     help='specify the mongo host uri')
@@ -19,5 +20,10 @@ args = parser.parse_args()
 
 client = pymongo.MongoClient(args.mongo_host, args.mongo_port)
 db = client[args.mongo_database]
-forges = db['forges'] #create forges collection
-forges.create_index("name") #have to create an index or insert something to create the collection.
+forges = db['forges']  # create forges collection
+# have to create an index or insert something to create the collection.
+forges.create_index("name")
+forgegraphs = db['forgegraphs']  # create metagraphs collection
+# Forgegraph indices?
+metagraphs = db['metagraphs']  # create metagraphs collection
+# Metagraph indices?

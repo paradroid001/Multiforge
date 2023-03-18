@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import HomeView from '@/views/HomeView.vue';
 import ToolsView from '@/views/ToolsView.vue';
 import WorkflowView from '@/views/WorkflowView.vue';
+import ModelView from '@/views/ModelView.vue';
 
 
 const routes: Array<RouteRecordRaw> = [
@@ -24,8 +25,13 @@ const routes: Array<RouteRecordRaw> = [
     component: ToolsView
   },
   {
-    path: '/workflows',
-    name: 'Workflows',
+    path: '/models',
+    name: 'Models',
+    component: ModelView
+  },
+  {
+    path: '/generators',
+    name: 'Generators',
     component: WorkflowView
   }
 ];

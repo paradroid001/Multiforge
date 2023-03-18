@@ -1,32 +1,68 @@
 <template>
   <div class="litegraph litegraph-editor">
-    <input
-      type="text"
-      @input="onSaveNameChange($event)"
-      v-model="saveSelected"
-    />
-    <button @click="save()">
-      <i class="mdi mdi-flask" aria-hidden="true"></i>
-      Save
-    </button>
-    <select
-      name="loadgraphs"
-      id="loadgraphs"
-      @change="onLoadFileChange($event)"
-      v-model="selected"
+    <div id="ProjectSelect" class="graph-controls">
+      Project:
+      <select
+        name="loadprojects"
+        id="loadprojects"
+        @change="onLoadProjectChange($event)"
+        v-model="selected"
+      >
+        <option v-for="item in projectnames" :value="item[1]">
+          {{ item[0] }}
+        </option>
+      </select>
+
+      <div v-if="selectedProjectName == '0'">
+        Project Name:
+        <input
+          type="text"
+          @input="onProjectNameChange($event)"
+          v-model="saveProjectName"
+        />
+        <button @click="saveProject()">
+          <i class="mdi mdi-flask" aria-hidden="true"></i>
+          New Project
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="GraphSelect"
+      class="graph-controls"
+      v-if="selectedProjectName.length && selectedProjectName != '0'"
     >
-      <option v-for="item in filenames" :value="item[0]">
-        {{ item[1] }}
-      </option>
-    </select>
-    <button @click="load()">
-      <i class="mdi mdi-flask" aria-hidden="true"></i>
-      Load
-    </button>
+      Graph:
+      <select
+        name="loadgraphs"
+        id="loadgraphs"
+        @change="onLoadFileChange($event)"
+        v-model="selected"
+      >
+        <option v-for="item in filenames" :value="item[0]">
+          {{ item[1] }}
+        </option>
+      </select>
+      <button @click="load()">
+        <i class="mdi mdi-flask" aria-hidden="true"></i>
+        Load
+      </button>
+      <input
+        type="text"
+        @input="onSaveNameChange($event)"
+        v-model="saveSelected"
+      />
+      <button @click="save()">
+        <i class="mdi mdi-flask" aria-hidden="true"></i>
+        Save
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { forEach } from "gl-matrix-ts/dist/vec3";
+
 console.log("Importing litegraph serialiser");
 import { ref } from "vue";
 import * as litegraph from "litegraph.js";
@@ -36,9 +72,31 @@ import { createMultiForgeNodes } from "../utils/multiForgeTools";
 const props = defineProps<{ graph: litegraph.LGraph }>();
 const backendurl = import.meta.env.VITE_BACKEND_URL;
 const filenames = ref<string[][]>([]);
-const saveName = ref<string>("");
+const projectnames = ref<string[][]>([]);
+
 let selected: string = ""; //selected graph to load.
-let saveSelected: string;
+let saveSelected: string; //save (graph) input v-model
+const saveName = ref<string>(""); //save name transferred to here on change
+const selectedProjectName = ref<string>(""); //selected project
+let saveProjectName: string; //save project v-model.
+const saveProjectNameRef = ref<string>(""); //proj name transferred to here on change
+
+const populateProjectNames = (names: string[][]) => {
+  projectnames.value = [];
+  projectnames.value.push(["New Project...", "0"]);
+  names.forEach((item: string[]) => {
+    projectnames.value.push(item);
+  });
+};
+
+const loadProjectNames = async () => {
+  const ret: JSONResponse<string[][]> = new JSONResponse<string[][]>();
+  await ret.load(`${backendurl}/metagraphs/projects/names/`);
+  if (ret.data) {
+    //projectnames.value = ret.data;
+    populateProjectNames(ret.data);
+  }
+};
 
 const loadGraphNames = async () => {
   //console.log("Loading graphnames");
@@ -52,6 +110,8 @@ const loadGraphNames = async () => {
 
 //Load the graph names.
 loadGraphNames();
+//load the project names
+loadProjectNames();
 
 const loadGraph = async (graph_id: string): Promise<string | null> => {
   //console.log("Trying to load graph " + graph_id);
@@ -136,6 +196,16 @@ const save = async () => {
   }
 };
 
+const saveProject = async () => {
+  if (saveProjectNameRef.value !== "") {
+  }
+};
+
+const onLoadProjectChange = (event: any) => {
+  selectedProjectName.value = event.target.value;
+  console.log(`selectedProjectName = ${selectedProjectName.value}`);
+};
+
 const onLoadFileChange = (event: any) => {
   //console.log(event.target.value);
   selected = event.target.value;
@@ -144,4 +214,15 @@ const onSaveNameChange = (event: any) => {
   //console.log(event.target.value);
   saveName.value = event.target.value;
 };
+
+const onProjectNameChange = (event: any) => {
+  saveProjectNameRef.value = event.target.value;
+};
 </script>
+
+<style scoped>
+.graph-controls {
+  float: left;
+  padding: 10px;
+}
+</style>

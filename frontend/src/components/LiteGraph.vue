@@ -23,6 +23,7 @@ import {
   FlaggedValue,
   OutputValue,
 } from "../types/ForgeTool";
+import { MetaGraphProject } from "../types/MetaGraph";
 import { JSONResponse } from "../types/JSONResponse";
 import { defineComponent, onMounted, PropType, ref, watch } from "vue";
 console.log("Importing GLMAtrix");
@@ -49,6 +50,10 @@ export default defineComponent({
     forgesArray: {
       required: true,
       type: Array as PropType<Forge[]>,
+    },
+    projectsArray: {
+      required: true,
+      type: Array as PropType<MetaGraphProject[]>,
     },
   },
   setup(props) {

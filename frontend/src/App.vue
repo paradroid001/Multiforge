@@ -3,11 +3,14 @@
     <router-link to="/">Home</router-link>
     <router-link :to="{ name: 'Forges' }">Forges</router-link>
     <router-link :to="{ name: 'Tools' }">Tools</router-link>
-    <router-link :to="{ name: 'Workflows' }">Workflows</router-link>
+    <router-link :to="{ name: 'Models' }">Models</router-link>
+    <router-link :to="{ name: 'Generators' }">Generators</router-link>
   </div>
+  <!-- I don't want this useless space-eating navigation.
   <button @click="redirect">Redirect</button>
   <button @click="back">Go Back</button>
   <button @click="forward">Go Forward</button>
+  -->
   <router-view />
 </template>
 
